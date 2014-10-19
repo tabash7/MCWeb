@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudbus.cloudsim.ex.geolocation.IGeolocationService;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
@@ -39,12 +41,11 @@ import com.google.common.base.Preconditions;
 public class UserRequest {
 
     /** Logger. */
-    @SuppressWarnings("unused")
     private static final Logger LOG = Logger.getLogger(UserRequest.class.getCanonicalName());
-    
+
     private final String ipAddress;
     private final String userToken;
-    private final List<CloudSiteResponse> viableCloudSiteResponses;
+    final List<CloudSiteResponse> viableCloudSiteResponses;
     private boolean processed = false;
     private double latencySLA = -1;
     private IGeolocationService geoLocationService;
@@ -101,6 +102,11 @@ public class UserRequest {
      */
     public synchronized void addResponseFromCloudSite(final CloudSiteResponse response) {
         Preconditions.checkNotNull(response);
+        LOG.log(Level.INFO, "User {0}, Receiving response from {1}, Eligibility={2}, Cost={3} ", 
+                new Object[] {toString(),
+                    response.getCloudSite().getName(),
+                    response.isEligible(),
+                    response.getCostEstimation() });
 
         if (response.isEligible()) {
             // Keep it sorted
@@ -179,7 +185,17 @@ public class UserRequest {
         double selectedLatency = Double.MAX_VALUE;
 
         for (CloudSiteResponse cloudSiteResponse : viableCloudSiteResponses) {
-            double latency = geoLocationService.latency(getIpAddress(), cloudSiteResponse.getCloudSite().getIPAddress());
+            double latency = geoLocationService
+                    .latency(getIpAddress(), cloudSiteResponse.getCloudSite().getIPAddress());
+            if (Double.isNaN(latency)) {
+                LOG.log(Level.WARNING, 
+                        "Could not find the latency between {0} and {1} Considering the latency to be the SLA: {2}", 
+                        new Object[] { getIpAddress(),
+                                       cloudSiteResponse.getCloudSite().getIPAddress(),
+                                       latencySLA });
+                latency = latencySLA;
+            }
+            
             if (latency < latencySLA) {
                 selectedCloud = cloudSiteResponse.getCloudSite();
                 break;
@@ -188,7 +204,20 @@ public class UserRequest {
                 selectedLatency = latency;
             }
         }
+
+        LOG.log(Level.INFO, "User {0}, Selected cloud site {1} ",
+                new Object[] {toString(), java.util.Objects.toString(selectedCloud).toString() });
+        
         return selectedCloud;
     }
 
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+                .add("User", this.userToken)
+                .add("IP", this.ipAddress)
+                .add("LatencySLA", this.latencySLA)
+                .add("Processed", this.processed)
+                .toString();
+    }
 }

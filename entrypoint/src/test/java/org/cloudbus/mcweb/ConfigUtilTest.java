@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.cloudbus.mcweb.ConfigUtil.*;
-import static org.cloudbus.mcweb.CloudSiteUtil.*;
+import static org.cloudbus.mcweb.CloudSite.*;
 
 public class ConfigUtilTest {
 
@@ -20,7 +20,7 @@ public class ConfigUtilTest {
         // Parse 1 cloud site
         InputStream is = streamFrom("Name;      AdmissionControllerAddress;     LoadBalancerAddress\n"
                 + "AWS1;    127.0.0.1;                                      127.0.0.1:80\n");
-        List<CloudSite> sites = ConfigUtil.parseCloudSites(is, DEFAULT_FACTORY);
+        List<CloudSite> sites = ConfigUtil.parseCloudSites(is, FACTORY);
         assertEquals(0, is.available());
         assertEquals(1, sites.size());
         assertEquals("AWS1", sites.get(0).getName());
@@ -31,7 +31,7 @@ public class ConfigUtilTest {
         is = streamFrom("Name;      AdmissionControllerAddress;     LoadBalancerAddress\n"
                 + "AWS1;    127.0.0.1;                                      127.0.0.1:80\n"
                 + "AWS2;   127.0.0.2;                                      127.0.0.2");
-        sites = parseCloudSites(is, DEFAULT_FACTORY);
+        sites = parseCloudSites(is, FACTORY);
         assertEquals(0, is.available());
         assertEquals(2, sites.size());
         assertEquals("AWS1", sites.get(0).getName());
@@ -43,7 +43,7 @@ public class ConfigUtilTest {
 
         // Parse 0 cloud sites
         is = streamFrom("Name;      AdmissionControllerAddress;     LoadBalancerAddress");
-        sites = parseCloudSites(is, DEFAULT_FACTORY);
+        sites = parseCloudSites(is, FACTORY);
         assertEquals(0, is.available());
         assertTrue(sites.isEmpty());
     }

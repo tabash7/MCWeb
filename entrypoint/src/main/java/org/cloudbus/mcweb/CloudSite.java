@@ -3,9 +3,11 @@ package org.cloudbus.mcweb;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
@@ -15,11 +17,18 @@ import com.google.common.base.Preconditions;
  * @author nikolay.grozev
  *
  */
-public class CloudSite {
+public class CloudSite implements AutoCloseable {
 
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(CloudSite.class.getCanonicalName());
 
+    /**
+     * Creates default cloud sites, which accept every user with 0 cost. The
+     * created cloud sites do not communicate with the actual clouds.
+     */
+    public static final Function<String[], CloudSite> FACTORY = s -> new CloudSite(s[0], s[1], s[2]);
+    
+    
     /** A human readable name of the cloud site. */
     private final String name;
     /** The URL address of the admission controller in the cloud site. */
@@ -40,13 +49,16 @@ public class CloudSite {
      *            - address of the load balancer. Must not be null.
      */
     public CloudSite(final String name, final String admissionControllerAddress, final String loadBalancerAddress) {
-        super();
+        Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(admissionControllerAddress);
+        Preconditions.checkNotNull(loadBalancerAddress);
+        
         this.name = name;
         this.admissionControllerAddress = admissionControllerAddress;
         this.loadBalancerAddress = loadBalancerAddress;
 
         // Force DNS resolution to retrieve the actual IP address.
-        String bareUrl = loadBalancerAddress.replaceAll("^\\w+://", "").replaceAll("/.*$", "");
+        String bareUrl = loadBalancerAddress.replaceAll("^\\w+://", "").replaceAll("(/|:).*$", "");
         try {
             InetAddress inetAddress = InetAddress.getByName(bareUrl);
             this.ipAddress = inetAddress.getHostAddress();
@@ -85,7 +97,8 @@ public class CloudSite {
     }
 
     /**
-     * Enquires the cloud site about the user.
+     * Enquires the cloud site about the user. This implementation is
+     * promiscuous and accepts all users with price 0.
      * 
      * @param requests
      *            - a unique identifier of the user. Must not be null or empty.
@@ -107,4 +120,19 @@ public class CloudSite {
         return ipAddress;
     }
 
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+                .add("Name", this.name)
+                .add("Adm Ctrl", this.admissionControllerAddress)
+                .add("Load Bal", this.loadBalancerAddress)
+                .add("IP", this.ipAddress)
+                .toString();
+    }
+
+    @Override
+    public void close() throws Exception {
+        // Do nothing - will implement in subclasses
+    }
+    
 }

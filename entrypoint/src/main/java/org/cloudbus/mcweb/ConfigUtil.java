@@ -83,11 +83,11 @@ public final class ConfigUtil {
             // Skip the header
             String[] lineElems = csv.readNext();
 
-            for (int i = 0; i < lineElems.length; i++) {
-                lineElems[i] = lineElems[i].trim();
-            }
 
             while ((lineElems = csv.readNext()) != null) {
+                for (int i = 0; i < lineElems.length; i++) {
+                    lineElems[i] = lineElems[i].trim();
+                }
                 sites.add(cloudSiteFactory.apply(lineElems));
             }
         } catch (IOException e) {

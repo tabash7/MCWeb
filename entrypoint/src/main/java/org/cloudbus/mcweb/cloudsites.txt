@@ -1,3 +1,0 @@
-Name;	AdmissionControllerAddress;	LoadBalancerAddress
-AWS;	127.0.0.1;					127.0.0.1
-AWS2;	127.0.0.2;					127.0.0.2

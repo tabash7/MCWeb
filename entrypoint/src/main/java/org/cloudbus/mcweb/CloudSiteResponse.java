@@ -1,5 +1,6 @@
 package org.cloudbus.mcweb;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
@@ -62,4 +63,14 @@ public class CloudSiteResponse {
     public CloudSite getCloudSite() {
         return site;
     }
+    
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+                .add("CloudSite", this.site.getName())
+                .add("Cost est", this.costEstimation)
+                .add("Eligible", this.eligible)
+                .toString();
+    }
+    
 }
