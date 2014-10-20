@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.entrypoint;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

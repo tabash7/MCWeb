@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.entrypoint;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.google.common.base.Preconditions;
+import static org.cloudbus.mcweb.ConfigUtil.*;
 
 /**
  * Utility class for parsing the configuration files.
@@ -20,10 +21,10 @@ import com.google.common.base.Preconditions;
  * @author nikolay.grozev
  *
  */
-public final class ConfigUtil {
+public final class EntryPointConfigUtil {
 
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(ConfigUtil.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(EntryPointConfigUtil.class.getCanonicalName());
 
     /** Config prop key. */
     public static final String LATENCY_SLA_PROP = "latenctSLA";
@@ -33,13 +34,9 @@ public final class ConfigUtil {
     public static final String CLOUD_SITE_RESPONSE_TIMEOUT_PROP = "cloudSiteResponseTimeout";
     /** Config prop key. */
     public static final String MAX_REQUEST_PERIOD_PROP = "maxRequestPeriod";
-    /** The separator in the csv file. */
-    public static final char CSV_SEP = ';';
-    /** The quote symbol in the csv and tsv files. */
-    public static final char QUOTE_SYMBOL = '\"';
 
     /** Suppress instantiation. */
-    private ConfigUtil() {
+    private EntryPointConfigUtil() {
     }
 
     public static Properties parseConfig(final InputStream inStream) {

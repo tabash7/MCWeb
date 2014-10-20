@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.entrypoint;
 
 import java.util.ArrayList;
 import java.util.Collections;

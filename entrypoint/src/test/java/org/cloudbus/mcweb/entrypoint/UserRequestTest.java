@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.entrypoint;
 
 import static org.junit.Assert.*;
 
@@ -7,6 +7,9 @@ import java.util.Map;
 
 import org.cloudbus.cloudsim.ex.geolocation.IGeolocationService;
 import org.cloudbus.cloudsim.ex.geolocation.geoip2.LookUpGeoLocationService;
+import org.cloudbus.mcweb.entrypoint.CloudSite;
+import org.cloudbus.mcweb.entrypoint.CloudSiteResponse;
+import org.cloudbus.mcweb.entrypoint.UserRequest;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;

@@ -1,26 +1,27 @@
-package org.cloudbus.mcweb;
-
-import java.io.ByteArrayInputStream;
+package org.cloudbus.mcweb.entrypoint;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 
+import org.cloudbus.mcweb.entrypoint.CloudSite;
+import org.cloudbus.mcweb.entrypoint.EntryPointConfigUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.cloudbus.mcweb.entrypoint.CloudSite.*;
 import static org.cloudbus.mcweb.ConfigUtil.*;
-import static org.cloudbus.mcweb.CloudSite.*;
+import static org.cloudbus.mcweb.entrypoint.EntryPointConfigUtil.*;
 
-public class ConfigUtilTest {
+public class EntryPointConfigUtilTest {
 
     @Test
     public void testParseConfig() throws IOException {
         // Parse 1 cloud site
         InputStream is = streamFrom("Name;      AdmissionControllerAddress;     LoadBalancerAddress\n"
                 + "AWS1;    127.0.0.1;                                      127.0.0.1:80\n");
-        List<CloudSite> sites = ConfigUtil.parseCloudSites(is, FACTORY);
+        List<CloudSite> sites = EntryPointConfigUtil.parseCloudSites(is, FACTORY);
         assertEquals(0, is.available());
         assertEquals(1, sites.size());
         assertEquals("AWS1", sites.get(0).getName());
@@ -69,9 +70,5 @@ public class ConfigUtilTest {
         props = parseConfig(is);
         assertEquals(40.123, Double.parseDouble(props.getProperty(LATENCY_SLA_PROP)), delta);
         assertEquals(0, is.available());
-    }
-
-    private static InputStream streamFrom(final String s) {
-        return new ByteArrayInputStream(s.getBytes());
     }
 }

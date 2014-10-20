@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.entrypoint;
 
 import static org.junit.Assert.*;
 
@@ -21,7 +21,10 @@ import org.junit.Test;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
-import org.cloudbus.mcweb.CloudSite;
+import org.cloudbus.mcweb.entrypoint.CloudSite;
+import org.cloudbus.mcweb.entrypoint.EntryPoint;
+import org.cloudbus.mcweb.entrypoint.PredefinedCostCloudSite;
+import org.cloudbus.mcweb.entrypoint.UserRequest;
 
 public class EntryPointTest {
 

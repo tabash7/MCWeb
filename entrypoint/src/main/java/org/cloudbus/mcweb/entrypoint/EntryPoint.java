@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.entrypoint;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +23,7 @@ import org.cloudbus.cloudsim.ex.geolocation.geoip2.GeoIP2PingERService;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
-import static org.cloudbus.mcweb.ConfigUtil.*;
+import static org.cloudbus.mcweb.entrypoint.EntryPointConfigUtil.*;
 
 /**
  * Represents an entry point in the system. Callers must call one of the
