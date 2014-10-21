@@ -42,7 +42,7 @@ public final class EntryPoint implements AutoCloseable {
     /** List of the incoming users, which have not been redirected yet. */
     private List<UserRequest> userRequests = new ArrayList<>();
     /** ThreadPool for connecting to admission controllers asynch. */
-    private final ExecutorService cloudSitesThreadPool = Executors.newCachedThreadPool();
+    private ExecutorService cloudSitesThreadPool;
 
     /** A geo-location services to determine the latencies between hosts. */
     private IGeolocationService geoLocationService;
@@ -52,12 +52,7 @@ public final class EntryPoint implements AutoCloseable {
     /** Periodically submits requests to cloud sites (admission controllers). */
     private Timer bacthRequestTimer = null;
     /** The thread, submitting requests to cloud sites (admission controllers). */
-    private TimerTask bacthRequestTimerTask = new TimerTask() {
-        @Override
-        public void run() {
-            processRequests();
-        }
-    };
+    private TimerTask bacthRequestTimerTask = null;
 
     /*
      * Members below are read from configuration
@@ -122,7 +117,6 @@ public final class EntryPoint implements AutoCloseable {
             } catch (Exception e) {
                 throw new IllegalStateException("Could not close previous EntryPoint", e);
             }
-            instance = null;
         }
         
         getInstance().cloudSites = Collections.unmodifiableList(parseCloudSites(cloudSitesStream, cloudSiteFactory));
@@ -135,6 +129,7 @@ public final class EntryPoint implements AutoCloseable {
         getInstance().maxRequestPeriod = Long.parseLong(props.getProperty(MAX_REQUEST_PERIOD_PROP));
 
         getInstance().geoLocationService = geoLocationService;
+        getInstance().cloudSitesThreadPool = Executors.newCachedThreadPool();
     }
 
     /**
@@ -197,10 +192,7 @@ public final class EntryPoint implements AutoCloseable {
 
             // Start the timer, which submits the requests to the admission
             // controller, if it has not been started
-            if (bacthRequestTimer == null) {
-                bacthRequestTimer = new Timer("Entry Point Batch Request Timer", true);
-                bacthRequestTimer.schedule(bacthRequestTimerTask, 10, periodBetweenBatchUserDispatch);
-            }
+            ensureTimerIsRunning();
             
             // Add the request to the queue of requests to send
             userRequests.add(req);
@@ -216,6 +208,19 @@ public final class EntryPoint implements AutoCloseable {
         }
     }
 
+    private void ensureTimerIsRunning() {
+        if (bacthRequestTimer == null || bacthRequestTimerTask == null) {
+            bacthRequestTimer = new Timer("Entry Point Batch Request Timer", true);
+            bacthRequestTimerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    processRequests();
+                }
+            };
+            bacthRequestTimer.schedule(bacthRequestTimerTask, 10, periodBetweenBatchUserDispatch);
+        }
+    }
+
     /**
      * Call in the end of the application.
      * @throws Exception
@@ -226,21 +231,26 @@ public final class EntryPoint implements AutoCloseable {
             Closer closer = Closer.create();
             
             // Stop the thread, which submits the requests
-            closer.register(() -> bacthRequestTimerTask.cancel());
             closer.register(() -> {
                 if (bacthRequestTimer != null) {
                     bacthRequestTimer.purge();
-                    bacthRequestTimer = null;
+
                 }
             });
-
+            closer.register(() -> {
+                if(bacthRequestTimerTask != null) {
+                    bacthRequestTimerTask.cancel();
+                    bacthRequestTimerTask = null;
+                }
+            });
+            
             // Notify all waiting threads
             closer.register(() -> {
                 synchronized (lock) {
                     lock.notifyAll();
                 }
             });
-
+            
             // Stop all threads from the pool
             closer.register(() -> cloudSitesThreadPool.shutdown());
             
@@ -255,6 +265,14 @@ public final class EntryPoint implements AutoCloseable {
                     }
                 });
             }
+            
+            // Close the geo-location
+            closer.register(geoLocationService);
+
+            closer.register(() -> {
+                cloudSites = new ArrayList<>();
+                userRequests = new ArrayList<>();
+            });
             
             //Close them all
             closer.close();

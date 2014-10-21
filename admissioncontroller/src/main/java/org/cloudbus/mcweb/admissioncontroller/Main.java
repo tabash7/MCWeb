@@ -30,7 +30,7 @@ public class Main {
 
             // Tells the Jersey Servlet which REST service/class to load.
             jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",
-                    AdmissionControllerPointService.class.getCanonicalName());
+                    AdmissionControllerService.class.getCanonicalName());
 
             try {
                 jettyServer.start();

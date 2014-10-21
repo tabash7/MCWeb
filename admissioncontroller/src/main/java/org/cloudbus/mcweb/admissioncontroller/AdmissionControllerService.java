@@ -10,7 +10,7 @@ import javax.ws.rs.core.MediaType;
 
 
 @Path("/entry-point")
-public class AdmissionControllerPointService {
+public class AdmissionControllerService {
 
     @GET
     @Path("test/{userToken}")
