@@ -35,7 +35,7 @@ public class ConfigUtilTest {
         assertEquals("m1.small", vmTypes.get(0).getIdentifier());
         assertEquals(0.1, vmTypes.get(0).getCostPerMinute(), 0.01);
         assertEquals(512d, vmTypes.get(0).getRamInMegabytes(), 0.01);
-        assertEquals(0.2, vmTypes.get(0).getNoramalisedCPUCapacity(), 0.01);
+        assertEquals(0.2, vmTypes.get(0).getNormalisedCPUCapacity(), 0.01);
 
         // Parse 2 VM types
         is = streamFrom("identifier;      costPerMinute;     ramInMegabytes,        noramalisedCPUCapacity\n"
@@ -47,12 +47,12 @@ public class ConfigUtilTest {
         assertEquals("m1.small", vmTypes.get(0).getIdentifier());
         assertEquals(0.1, vmTypes.get(0).getCostPerMinute(), 0.01);
         assertEquals(512d, vmTypes.get(0).getRamInMegabytes(), 0.01);
-        assertEquals(0.2, vmTypes.get(0).getNoramalisedCPUCapacity(), 0.01);
+        assertEquals(0.2, vmTypes.get(0).getNormalisedCPUCapacity(), 0.01);
         
         assertEquals("m1.medium", vmTypes.get(1).getIdentifier());
         assertEquals(0.11, vmTypes.get(1).getCostPerMinute(), 0.01);
         assertEquals(512.1d, vmTypes.get(1).getRamInMegabytes(), 0.01);
-        assertEquals(0.21, vmTypes.get(1).getNoramalisedCPUCapacity(), 0.01);
+        assertEquals(0.21, vmTypes.get(1).getNormalisedCPUCapacity(), 0.01);
 
         // Parse VM types
         is = streamFrom("identifier;      costPerMinute;     ramInMegabytes,        noramalisedCPUCapacity\n");

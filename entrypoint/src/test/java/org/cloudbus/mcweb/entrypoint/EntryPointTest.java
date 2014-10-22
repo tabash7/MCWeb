@@ -22,10 +22,13 @@ import org.junit.Test;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
+import org.cloudbus.mcweb.AggregatedUncaghtExceptionHandler;
 import org.cloudbus.mcweb.entrypoint.CloudSite;
 import org.cloudbus.mcweb.entrypoint.EntryPoint;
 import org.cloudbus.mcweb.entrypoint.PredefinedCostCloudSite;
 import org.cloudbus.mcweb.entrypoint.UserRequest;
+
+import static org.cloudbus.mcweb.TestUtil.*;
 
 public class EntryPointTest {
 
@@ -110,12 +113,12 @@ public class EntryPointTest {
     }
 
     @Test
-    public void testMultipleUsersNoDelays() throws InterruptedException {
+    public void testMultipleUsersNoDelays() throws Throwable {
         testMultipleUsersWithDelays(null, 0);
     }
 
     @Test
-    public void testMultipleUsersDelays() throws InterruptedException {
+    public void testMultipleUsersDelays() throws Throwable {
         // Average delay
         testMultipleUsersWithDelays(Arrays.asList(100l, 100l, 1000l, 200l), 500l);
 
@@ -130,19 +133,19 @@ public class EntryPointTest {
     }
 
     @Test
-    public void testUnresponsiveCloudWithoutAlternative() throws InterruptedException {
+    public void testUnresponsiveCloudWithoutAlternative() throws Throwable {
         // Unresponsive cloud site
         testMultipleUsersWithDelays(Arrays.asList(10_000_000l, 10l, 60l, 70l), 50l);
     }
 
     @Test
-    public void testUnresponsiveCloudWithAlternative() throws InterruptedException {
+    public void testUnresponsiveCloudWithAlternative() throws Throwable {
         // Unresponsive cloud site
         testMultipleUsersWithDelays(Arrays.asList(10l, 10_000_000l, 60l, 70l), 50l);
     }
 
     @Test
-    public void testTwoUnresponsiveCloudsWithAlternative() throws InterruptedException {
+    public void testTwoUnresponsiveCloudsWithAlternative() throws Throwable {
         // Unresponsive cloud site
         testMultipleUsersWithDelays(Arrays.asList(10l, 10_000_000l, 60l, 10_000_000l), 50l);
     }
@@ -161,10 +164,10 @@ public class EntryPointTest {
      * 
      * @param cloudsiteDelays
      * @param requestDelays
-     * @throws InterruptedException
+     * @throws Throwable 
      */
     private void testMultipleUsersWithDelays(final List<Long> cloudsiteDelays, final long requestDelays)
-            throws InterruptedException {
+            throws Throwable {
         final Random random = new Random(requestDelays);
 
         // The users to test with
@@ -219,22 +222,16 @@ public class EntryPointTest {
                 geoLocationService);
 
         // Send the requests in multiple threads
+        AggregatedUncaghtExceptionHandler errHandler = new AggregatedUncaghtExceptionHandler();
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < reqs.size(); i++) {
             final UserRequest req = reqs.get(i);
-            Thread t = new Thread(req.getUserToken()) {
-                @Override
-                public void run() {
-                    if (requestDelays > 0) {
-                        try {
-                            Thread.sleep((long) (random.nextDouble() * requestDelays));
-                        } catch (InterruptedException e) {
-                            throw new IllegalStateException(e);
-                        }
-                    }
-                    EntryPoint.getInstance().request(req);
-                }
-            };
+            Thread t = new Thread(() -> {
+                sleep(random.nextDouble() * requestDelays);
+                EntryPoint.getInstance().request(req);
+            });
+            t.setName(req.getUserToken());
+            t.setUncaughtExceptionHandler(errHandler);
             threads.add(t);
             t.start();
         }
@@ -243,6 +240,9 @@ public class EntryPointTest {
         for (Thread t : threads) {
             t.join();
         }
+        
+        // If any thread has failed - raise the first exception
+       errHandler.throwFirst();
 
         // Assert properties are set properly
         for (int i = 0; i < reqs.size(); i++) {
@@ -303,5 +303,4 @@ public class EntryPointTest {
         Preconditions.checkNotNull(resource);
         return EntryPointTest.class.getResourceAsStream(resource);
     }
-
 }

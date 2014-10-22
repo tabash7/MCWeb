@@ -1,5 +1,9 @@
 package org.cloudbus.mcweb;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
@@ -9,6 +13,9 @@ import com.google.common.base.Preconditions;
  */
 public class VirtualMachine implements AutoCloseable {
 
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(VirtualMachine.class.getCanonicalName());
+    
     private final String address;
     private final VMType type;
 
@@ -118,6 +125,7 @@ public class VirtualMachine implements AutoCloseable {
      * Fetches measurements from the VM.
      */
     public synchronized void fetch() {
+        LOG.log(Level.INFO, "Fetching data from :{0}", new Object[]{this});
         setCpuUtil(0.001);
         setRamUtil(0.001);
         setNumUsers(0);
@@ -130,18 +138,30 @@ public class VirtualMachine implements AutoCloseable {
      * @return an estimation of the cost for serving a user per minute or NaN if
      *         it cannot be estimated.
      */
-    public synchronized double costPerUser() {
+    public strictfp synchronized double costPerUser() {
         if (getNumUsers() > 0) {
             double maxNumberUsers = getNumUsers() / Math.max(getCPUUtil(), getRAMUtil());
             lastCost = getType().getCostPerMinute() / maxNumberUsers;
-            return lastCost;
-        } else {
-            return Double.NaN;
         }
+        LOG.log(Level.INFO, "Estimating the cost for {0}, Num Users: {1}, CPUUtil: {2}, RAMUtil: {3}", 
+                new Object[]{this,
+                    getNumUsers(),
+                    getCPUUtil(),
+                    getRAMUtil()});
+        
+        return lastCost;
     }
 
     @Override
     public synchronized void close() throws Exception {
-        // TODO Auto-generated method stub
+        LOG.log(Level.INFO, "Closing {0}", new Object[]{this});
+    }
+    
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(getClass())
+                .add("Address", this.address)
+                .add("Type", this.type.getIdentifier())
+                .toString();
     }
 }

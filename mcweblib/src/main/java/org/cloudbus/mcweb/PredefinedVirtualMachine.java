@@ -64,7 +64,7 @@ public class PredefinedVirtualMachine extends VirtualMachine {
 
     @Override
     public void fetch() {
-        if(fetchDelay > 0) {
+        if (fetchDelay > 0) {
             try {
                 Thread.sleep(fetchDelay);
             } catch (InterruptedException e) {
@@ -72,14 +72,15 @@ public class PredefinedVirtualMachine extends VirtualMachine {
                 throw new IllegalStateException(e);
             }
         }
-        
+
         synchronized (this) {
-            super.fetch();
-            Number[] next = measurements.next();
-    
-            setCpuUtil(next[0].doubleValue());
-            setRamUtil(next[1].doubleValue());
-            setNumUsers(next[2].intValue());
+            if (measurements.hasNext()) {
+                Number[] next = measurements.next();
+
+                setCpuUtil(next[0].doubleValue());
+                setRamUtil(next[1].doubleValue());
+                setNumUsers(next[2].intValue());
+            }
         }
     }
     

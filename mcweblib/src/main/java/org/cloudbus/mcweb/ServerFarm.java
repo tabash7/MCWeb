@@ -9,7 +9,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -21,8 +22,13 @@ import com.google.common.io.Closer;
  */
 public class ServerFarm implements AutoCloseable {
 
+    /** Logger. */
+    private static final Logger LOG = Logger.getLogger(ServerFarm.class.getCanonicalName());
+    
     /** VMs indexed by the addresses. */
     private final LinkedHashMap<String, VirtualMachine> servers;
+    /** The last cost estimation for serving a user per minute. */
+    private double latestCostEstimation = 0;
 
     /** ThreadPool for connecting fetching VM utilisations. */
     private final ExecutorService cloudSitesThreadPool = Executors.newCachedThreadPool();
@@ -58,6 +64,8 @@ public class ServerFarm implements AutoCloseable {
         this.servers = new LinkedHashMap<>();
         for (VirtualMachine vm : servers) {
             Preconditions.checkNotNull(vm);
+            Preconditions.checkArgument(!this.servers.containsKey(vm.getAddress()), "Address %s is duplicated", vm.getAddress());
+            
             this.servers.put(vm.getAddress(), vm);
         }
 
@@ -103,6 +111,31 @@ public class ServerFarm implements AutoCloseable {
     }
 
     /**
+     * Returns the estimation for serving a user per minute in this server farm. 
+     * @return the estimation for serving a user per minute in this server farm.
+     */
+    public strictfp synchronized double costPerUser() {
+        int count = 0;
+        double accummulatedCost = 0;
+        for (VirtualMachine vm : servers.values()) {
+            double vmCostPerUser = vm.costPerUser();
+            if (!Double.isNaN(vmCostPerUser)) {
+                count++;
+                accummulatedCost += vmCostPerUser;
+            }
+        }
+        
+        if (count != 0) {
+            latestCostEstimation = accummulatedCost / count;
+            return latestCostEstimation;
+        }
+        
+        LOG.log(Level.INFO, "Estimated the cost: {0}", new Object[]{latestCostEstimation});
+        
+        return latestCostEstimation;
+    }
+    
+    /**
      * Returns the server associated with the specified address. Otherwise -
      * null.
      * 
@@ -114,9 +147,14 @@ public class ServerFarm implements AutoCloseable {
         Preconditions.checkNotNull(serverAddress);
         return servers.get(serverAddress);
     }
+    
+    synchronized long getPeriodBetweenVMUtilFetching() {
+        return periodBetweenVMUtilFetching;
+    }
 
     private synchronized void fetch() {
         for (VirtualMachine vm : servers.values()) {
+            LOG.log(Level.INFO, "Fetching data from server {0}", new Object[]{vm});
             cloudSitesThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -128,6 +166,8 @@ public class ServerFarm implements AutoCloseable {
 
     @Override
     public synchronized void close() throws Exception {
+        LOG.log(Level.INFO, "Closing {0}", new Object[]{this});
+        
         Closer closer = Closer.create();
         
         // Stop all cloud sites

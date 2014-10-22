@@ -30,7 +30,7 @@ public class PredefinedVirtualMachineTest {
             
             // Measurements: cpu=0.5, ram=0.7, numU=0. Result must be NaN
             vm.fetch();
-            assertTrue(Double.isNaN(vm.costPerUser()));
+            assertEquals(type.getCostPerMinute() * 0.2, vm.costPerUser(), delta);
             
             // Measurements: cpu=0.2, ram=0.15, numU=1. Result must be cost_per_min * 0.32 / 5
             vm.fetch();
