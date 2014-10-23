@@ -26,9 +26,9 @@ import org.cloudbus.mcweb.AggregatedUncaghtExceptionHandler;
 import org.cloudbus.mcweb.entrypoint.CloudSite;
 import org.cloudbus.mcweb.entrypoint.EntryPoint;
 import org.cloudbus.mcweb.entrypoint.PredefinedCostCloudSite;
-import org.cloudbus.mcweb.entrypoint.UserRequest;
+import org.cloudbus.mcweb.entrypoint.EPUserRequest;
 
-import static org.cloudbus.mcweb.TestUtil.*;
+import static org.cloudbus.mcweb.util.Tests.*;
 
 public class EntryPointTest {
 
@@ -43,16 +43,20 @@ public class EntryPointTest {
     @Test
     public void testConfigureInstanceMultipleTimes() {
         IGeolocationService geoLocationService = new GeoIP2PingERService();
-        EntryPoint.configureInstance(classLoad(CLOUDSITES_PROPERTIES), classLoad(CONFIG_PROPERTIES), CloudSite.FACTORY,
+        EntryPoint.getInstance().configure(classLoad(CLOUDSITES_PROPERTIES),
+                classLoad(CONFIG_PROPERTIES),
+                CloudSite.FACTORY,
                 geoLocationService);
-        EntryPoint.configureInstance(classLoad(CLOUDSITES_PROPERTIES), classLoad(CONFIG_PROPERTIES), CloudSite.FACTORY,
+        EntryPoint.getInstance().configure(classLoad(CLOUDSITES_PROPERTIES),
+                classLoad(CONFIG_PROPERTIES),
+                CloudSite.FACTORY,
                 geoLocationService);
     }
 
     @Test
     public void testSingleValidUser() {
         // The user to test with
-        UserRequest req = new UserRequest("127.127.127.127", "user1");
+        EPUserRequest req = new EPUserRequest("127.127.127.127", "user1");
         assertFalse(req.isProcessed());
 
         // Latencies between user and cloud sites
@@ -69,7 +73,9 @@ public class EntryPointTest {
                 eligibleUsers, costs, null);
 
         // Configure the entry point
-        EntryPoint.configureInstance(classLoad(CLOUDSITES_PROPERTIES), classLoad(CONFIG_PROPERTIES), factory,
+        EntryPoint.getInstance().configure(classLoad(CLOUDSITES_PROPERTIES),
+                classLoad(CONFIG_PROPERTIES),
+                factory,
                 geoLocationService);
 
         // Send the request
@@ -84,7 +90,7 @@ public class EntryPointTest {
     @Test
     public void testSingleInvalidUser() {
         // The user to test with
-        UserRequest req = new UserRequest("127.127.127.127", "user1");
+        EPUserRequest req = new EPUserRequest("127.127.127.127", "user1");
         assertFalse(req.isProcessed());
 
         // Latencies between user and cloud sites
@@ -100,7 +106,9 @@ public class EntryPointTest {
                 eligibleUsers, costs, null);
 
         // Configure the entry point
-        EntryPoint.configureInstance(classLoad(CLOUDSITES_PROPERTIES), classLoad(CONFIG_PROPERTIES), factory,
+        EntryPoint.getInstance().configure(classLoad(CLOUDSITES_PROPERTIES),
+                classLoad(CONFIG_PROPERTIES),
+                factory,
                 geoLocationService);
 
         // Send the request
@@ -171,9 +179,9 @@ public class EntryPointTest {
         final Random random = new Random(requestDelays);
 
         // The users to test with
-        List<UserRequest> reqs = new ArrayList<UserRequest>();
+        List<EPUserRequest> reqs = new ArrayList<EPUserRequest>();
         for (int i = 0; i < 100; i++) {
-            UserRequest req = new UserRequest("127.127.127." + i, "user" + i);
+            EPUserRequest req = new EPUserRequest("127.127.127." + i, "user" + i);
             assertFalse(req.isProcessed());
             reqs.add(req);
         }
@@ -181,7 +189,7 @@ public class EntryPointTest {
         // Latencies between users and cloud sites
         Map<String, Double> latencyCache = new HashMap<>();
         for (int i = 0; i < reqs.size(); i++) {
-            UserRequest req = reqs.get(i);
+            EPUserRequest req = reqs.get(i);
             latencyCache.put(req.getIpAddress() + "127.0.0.1", (double) ((i + 1) * 10 % 50));
             latencyCache.put(req.getIpAddress() + "127.0.0.2", (double) ((i + 1) * 20 % 50));
             latencyCache.put(req.getIpAddress() + "127.0.0.3", (double) ((i + 1) * 30 % 50));
@@ -200,7 +208,7 @@ public class EntryPointTest {
         List<Double> costs = Arrays.asList(10d, 20d, 30d, 40d);
 
         for (int i = 0; i < reqs.size(); i++) {
-            UserRequest req = reqs.get(i);
+            EPUserRequest req = reqs.get(i);
             if (i % 4 == 0) {
                 continue;
             } else if (i % 4 == 1) {
@@ -218,14 +226,16 @@ public class EntryPointTest {
                 eligibleUsers, costs, cloudsiteDelays);
 
         // Configure the entry point
-        EntryPoint.configureInstance(classLoad(CLOUDSITES_PROPERTIES), classLoad(CONFIG_PROPERTIES), factory,
+        EntryPoint.getInstance().configure(classLoad(CLOUDSITES_PROPERTIES),
+                classLoad(CONFIG_PROPERTIES),
+                factory,
                 geoLocationService);
 
         // Send the requests in multiple threads
         AggregatedUncaghtExceptionHandler errHandler = new AggregatedUncaghtExceptionHandler();
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < reqs.size(); i++) {
-            final UserRequest req = reqs.get(i);
+            final EPUserRequest req = reqs.get(i);
             Thread t = new Thread(() -> {
                 sleep(random.nextDouble() * requestDelays);
                 EntryPoint.getInstance().request(req);
@@ -246,7 +256,7 @@ public class EntryPointTest {
 
         // Assert properties are set properly
         for (int i = 0; i < reqs.size(); i++) {
-            UserRequest req = reqs.get(i);
+            EPUserRequest req = reqs.get(i);
             assertTrue(req.isProcessed());
             assertEquals(40, req.getLatencySLA(), 0.01);
 

@@ -16,6 +16,8 @@ public class AdmissionControllerService {
     @Path("test/{userToken}")
     @Produces(MediaType.TEXT_PLAIN)
     public String test(@PathParam("userToken") final String userToken) {
+        
+        
         return Objects.toString(userToken);
     }
 }

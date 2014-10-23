@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.cloudbus.mcweb.VMType;
+
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.google.common.base.Preconditions;
@@ -21,10 +23,10 @@ import com.google.common.base.Preconditions;
  * @author nikolay.grozev
  *
  */
-public final class ConfigUtil {
+public final class Configs {
 
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(ConfigUtil.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(Configs.class.getCanonicalName());
 
     /** The separator in the csv file. */
     public static final char CSV_SEP = ';';
@@ -32,7 +34,7 @@ public final class ConfigUtil {
     public static final char QUOTE_SYMBOL = '\"';
 
     /** Suppress instantiation. */
-    private ConfigUtil() {
+    private Configs() {
     }
 
     public static List<VMType> parseVMTypes(final InputStream inStream) {

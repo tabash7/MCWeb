@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudbus.cloudsim.ex.geolocation.IGeolocationService;
+import org.cloudbus.mcweb.UserRequest;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -38,21 +39,19 @@ import com.google.common.base.Preconditions;
  * @author nikolay.grozev
  *
  */
-public class UserRequest {
+public class EPUserRequest extends UserRequest {
 
     /** Logger. */
-    private static final Logger LOG = Logger.getLogger(UserRequest.class.getCanonicalName());
+    private static final Logger LOG = Logger.getLogger(EPUserRequest.class.getCanonicalName());
 
-    private final String ipAddress;
-    private final String userToken;
-    final List<CloudSiteResponse> viableCloudSiteResponses;
+    final List<EPAdmissionControllerResponse> viableCloudSiteResponses;
     private boolean processed = false;
     private double latencySLA = -1;
     private IGeolocationService geoLocationService;
 
-    private static final Comparator<CloudSiteResponse> COST_CMP = new Comparator<CloudSiteResponse>() {
+    private static final Comparator<EPAdmissionControllerResponse> COST_CMP = new Comparator<EPAdmissionControllerResponse>() {
         @Override
-        public int compare(final CloudSiteResponse site1, final CloudSiteResponse site2) {
+        public int compare(final EPAdmissionControllerResponse site1, final EPAdmissionControllerResponse site2) {
             return Double.compare(site1.getCostEstimation(), site2.getCostEstimation());
         }
     };
@@ -67,31 +66,9 @@ public class UserRequest {
      *            canonical form described in RFC 5952 - e.g. 2001:db8::1:0:0:1.
      * @param userToken
      */
-    public UserRequest(final String ipAddress, final String userToken) {
-        Preconditions.checkNotNull(ipAddress);
-        Preconditions.checkNotNull(userToken);
-
-        this.ipAddress = ipAddress;
-        this.userToken = userToken;
+    public EPUserRequest(final String ipAddress, final String userToken) {
+        super(ipAddress, userToken);
         this.viableCloudSiteResponses = new ArrayList<>();
-    }
-
-    /**
-     * Returns the IP address of the user.
-     * 
-     * @return the IP address of the user.
-     */
-    public synchronized String getIpAddress() {
-        return ipAddress;
-    }
-
-    /**
-     * Returns the user token, identifying the user.
-     * 
-     * @return the user token, identifying the user.
-     */
-    public synchronized String getUserToken() {
-        return userToken;
     }
 
     /**
@@ -100,8 +77,9 @@ public class UserRequest {
      * @param response
      *            - the new response. Must no be null.
      */
-    public synchronized void addResponseFromCloudSite(final CloudSiteResponse response) {
+    public synchronized void addResponseFromCloudSite(final EPAdmissionControllerResponse response) {
         Preconditions.checkNotNull(response);
+        Preconditions.checkArgument(response.getUserToken().equals(getUserToken()));
         LOG.log(Level.INFO, "User {0}, Receiving response from {1}, Eligibility={2}, Cost={3} ", 
                 new Object[] {toString(),
                     response.getCloudSite().getName(),
@@ -184,7 +162,7 @@ public class UserRequest {
         CloudSite selectedCloud = null;
         double selectedLatency = Double.MAX_VALUE;
 
-        for (CloudSiteResponse cloudSiteResponse : viableCloudSiteResponses) {
+        for (EPAdmissionControllerResponse cloudSiteResponse : viableCloudSiteResponses) {
             double latency = geoLocationService
                     .latency(getIpAddress(), cloudSiteResponse.getCloudSite().getIPAddress());
             if (Double.isNaN(latency)) {
@@ -214,8 +192,8 @@ public class UserRequest {
     @Override
     public String toString() {
         return Objects.toStringHelper(getClass())
-                .add("User", this.userToken)
-                .add("IP", this.ipAddress)
+                .add("User", this.getUserToken())
+                .add("IP", this.getIpAddress())
                 .add("LatencySLA", this.latencySLA)
                 .add("Processed", this.processed)
                 .toString();

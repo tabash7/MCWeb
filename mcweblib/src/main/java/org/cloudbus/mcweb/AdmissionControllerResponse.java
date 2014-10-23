@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb.entrypoint;
+package org.cloudbus.mcweb;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -10,30 +10,39 @@ import com.google.common.base.Preconditions;
  * @author nikolay.grozev
  *
  */
-public class CloudSiteResponse {
+public class AdmissionControllerResponse {
 
+    private final String userToken;
     private final boolean eligible;
     private final double costEstimation;
-    private final CloudSite site;
 
     /**
      * Constr.
      * 
+     * @param userToken
+     *            - the user token. Must not be null;
      * @param eligible
      *            - whether the user is eligible for the cloud site.
      * @param costEstimation
      *            - an estimation of the cost for serving the user. Can be NaN
-     *            the user is not eligible. Otherwise must non-negative.
-     * @param site
-     *            - the cloud site, whose response this is. Must not be null.
+     *            the user is not eligible. Otherwise must non-negative. - the
+     *            cloud site, whose response this is. Must not be null.
      */
-    public CloudSiteResponse(final boolean eligible, final double costEstimation, final CloudSite site) {
+    public AdmissionControllerResponse(final String userToken, final boolean eligible, final double costEstimation) {
+        Preconditions.checkNotNull(userToken);
         Preconditions.checkArgument((!Double.isNaN(costEstimation) || eligible) || costEstimation >= 0);
-        Preconditions.checkNotNull(site);
 
+        this.userToken = userToken;
         this.eligible = eligible;
         this.costEstimation = costEstimation;
-        this.site = site;
+    }
+    
+    /**
+     * Returns the user token.
+     * @return the user token.
+     */
+    public String getUserToken() {
+        return userToken;
     }
 
     /**
@@ -54,23 +63,13 @@ public class CloudSiteResponse {
     public double getCostEstimation() {
         return costEstimation;
     }
-
-    /**
-     * Returns the cloud site, whose response this is.
-     * 
-     * @return the cloud site, whose response this is.
-     */
-    public CloudSite getCloudSite() {
-        return site;
-    }
     
     @Override
     public String toString() {
         return Objects.toStringHelper(getClass())
-                .add("CloudSite", this.site.getName())
-                .add("Cost est", this.costEstimation)
-                .add("Eligible", this.eligible)
+                .add("User", this.getUserToken())
+                .add("Cost est", this.getCostEstimation())
+                .add("Eligible", this.isEligible())
                 .toString();
     }
-    
 }

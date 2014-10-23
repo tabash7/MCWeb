@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.util;
 
 import com.google.common.base.Preconditions;
 
@@ -8,9 +8,9 @@ import com.google.common.base.Preconditions;
  * @author nikolay.grozev
  *
  */
-public class TestUtil {
+public class Tests {
 
-    private TestUtil() {
+    private Tests() {
     }
 
     /**

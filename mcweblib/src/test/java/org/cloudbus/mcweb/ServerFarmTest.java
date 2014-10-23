@@ -11,7 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.cloudbus.mcweb.TestUtil.*; 
+import static org.cloudbus.mcweb.util.Tests.*;
 
 public class ServerFarmTest {
 

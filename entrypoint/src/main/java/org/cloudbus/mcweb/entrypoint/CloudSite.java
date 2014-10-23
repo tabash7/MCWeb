@@ -103,11 +103,11 @@ public class CloudSite implements AutoCloseable {
      * @param requests
      *            - a unique identifier of the user. Must not be null or empty.
      */
-    public void enquire(final List<UserRequest> requests) {
+    public void enquire(final List<EPUserRequest> requests) {
         Preconditions.checkNotNull(requests);
         Preconditions.checkArgument(!requests.isEmpty());
-        for (UserRequest userRequest : requests) {
-            userRequest.addResponseFromCloudSite(new CloudSiteResponse(true, 0, this));
+        for (EPUserRequest userRequest : requests) {
+            userRequest.addResponseFromCloudSite(new EPAdmissionControllerResponse(userRequest.getUserToken(), true, 0, this));
         }
     }
 

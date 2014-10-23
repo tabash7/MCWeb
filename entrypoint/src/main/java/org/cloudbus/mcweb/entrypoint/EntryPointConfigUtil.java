@@ -13,7 +13,8 @@ import java.util.logging.Logger;
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.google.common.base.Preconditions;
-import static org.cloudbus.mcweb.ConfigUtil.*;
+
+import static org.cloudbus.mcweb.util.Configs.*;
 
 /**
  * Utility class for parsing the configuration files.

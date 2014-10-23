@@ -11,8 +11,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static org.cloudbus.mcweb.entrypoint.CloudSite.*;
-import static org.cloudbus.mcweb.ConfigUtil.*;
 import static org.cloudbus.mcweb.entrypoint.EntryPointConfigUtil.*;
+import static org.cloudbus.mcweb.util.Configs.*;
 
 public class EntryPointConfigUtilTest {
 

@@ -1,6 +1,5 @@
 package org.cloudbus.mcweb.admissioncontroller;
 
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -17,12 +16,15 @@ public class Main {
 //                .getResourceAsStream("/config.properties");
 
         int jettyPort = args.length > 2 ? Integer.parseInt(args[2]) : 8080;
+        Server jettyServer = new Server(jettyPort);
 
+        try (AutoCloseable serverClosable = ()-> jettyServer.destroy();
+                AdmissionController controller = AdmissionController.getInstance()) {
+            AdmissionController.getInstance().configure(null, null);
 
             ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
             context.setContextPath("/");
 
-            Server jettyServer = new Server(jettyPort);
             jettyServer.setHandler(context);
 
             ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/*");
@@ -32,11 +34,8 @@ public class Main {
             jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",
                     AdmissionControllerService.class.getCanonicalName());
 
-            try {
-                jettyServer.start();
-                jettyServer.join();
-            } finally {
-                jettyServer.destroy();
-            }
+            jettyServer.start();
+            jettyServer.join();
         }
+    }
 }

@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
 import org.cloudbus.mcweb.entrypoint.CloudSite;
 import org.junit.Test;
 
-public class CloudSiteTest {
+public class EPAdmissionControllerResponseTest {
 
     @Test
     public void testConstruction() throws UnknownHostException {

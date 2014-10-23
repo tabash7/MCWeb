@@ -54,7 +54,7 @@ public class PredefinedCostCloudSite extends CloudSite {
     }
 
     @Override
-    public void enquire(List<UserRequest> requests) {
+    public void enquire(List<EPUserRequest> requests) {
         Preconditions.checkNotNull(requests);
         Preconditions.checkArgument(!requests.isEmpty());
         if(enquiryDelay > 0) {
@@ -64,9 +64,9 @@ public class PredefinedCostCloudSite extends CloudSite {
                 throw new IllegalStateException(e);
             }
         }
-        for (UserRequest userRequest : new ArrayList<>(requests)) {
+        for (EPUserRequest userRequest : new ArrayList<>(requests)) {
             boolean eligible = eligibleUsers == null ? true : eligibleUsers.contains(userRequest.getUserToken());
-            userRequest.addResponseFromCloudSite(new CloudSiteResponse(eligible, cost, this));
+            userRequest.addResponseFromCloudSite(new EPAdmissionControllerResponse(userRequest.getUserToken(), eligible, cost, this));
         }
     }
     

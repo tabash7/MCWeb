@@ -1,12 +1,13 @@
 package org.cloudbus.mcweb;
 
-import static org.cloudbus.mcweb.ConfigUtil.streamFrom;
+import static org.cloudbus.mcweb.util.Configs.streamFrom;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.cloudbus.mcweb.util.Configs;
 import org.junit.Test;
 
 import com.google.common.base.Preconditions;
@@ -20,7 +21,7 @@ public class ConfigUtilTest {
                 + "m1.medium;   0.11;    512.1;    0.21\n"
                 + "m1.small;    0.1;    512;    0.2\n"
                 + "m1.large;    0.1;    512;    0.2\n");
-        ConfigUtil.parseVMTypes(is);
+        Configs.parseVMTypes(is);
     }
     
     @Test
@@ -29,7 +30,7 @@ public class ConfigUtilTest {
         // Parse 1 VM type
         InputStream is = streamFrom("identifier;      costPerMinute;     ramInMegabytes,        noramalisedCPUCapacity\n"
                 + "m1.small;    0.1;    512;    0.2\n");
-        List<VMType> vmTypes = ConfigUtil.parseVMTypes(is);
+        List<VMType> vmTypes = Configs.parseVMTypes(is);
         assertEquals(0, is.available());
         assertEquals(1, vmTypes.size());
         assertEquals("m1.small", vmTypes.get(0).getIdentifier());
@@ -41,7 +42,7 @@ public class ConfigUtilTest {
         is = streamFrom("identifier;      costPerMinute;     ramInMegabytes,        noramalisedCPUCapacity\n"
                 + "m1.small;    0.1;    512;    0.2\n"
                 + "m1.medium;   0.11;    512.1;    0.21");
-        vmTypes = ConfigUtil.parseVMTypes(is);
+        vmTypes = Configs.parseVMTypes(is);
         assertEquals(0, is.available());
         assertEquals(2, vmTypes.size());
         assertEquals("m1.small", vmTypes.get(0).getIdentifier());
@@ -56,7 +57,7 @@ public class ConfigUtilTest {
 
         // Parse VM types
         is = streamFrom("identifier;      costPerMinute;     ramInMegabytes,        noramalisedCPUCapacity\n");
-        vmTypes = ConfigUtil.parseVMTypes(is);
+        vmTypes = Configs.parseVMTypes(is);
         assertEquals(0, is.available());
         assertTrue(vmTypes.isEmpty());
     }

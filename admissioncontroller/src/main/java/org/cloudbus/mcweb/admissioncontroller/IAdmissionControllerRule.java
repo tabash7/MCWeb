@@ -5,7 +5,7 @@ package org.cloudbus.mcweb.admissioncontroller;
  * 
  * @author nikolay.grozev
  */
-public interface IAdmissionControllerRule {
+public interface IAdmissionControllerRule extends AutoCloseable {
 
     /**
      * Returns, whether the user is eligible in this cloud site.

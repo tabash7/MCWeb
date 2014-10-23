@@ -7,19 +7,19 @@ import java.util.Map;
 
 import org.cloudbus.cloudsim.ex.geolocation.IGeolocationService;
 import org.cloudbus.cloudsim.ex.geolocation.geoip2.LookUpGeoLocationService;
+import org.cloudbus.mcweb.AdmissionControllerResponse;
 import org.cloudbus.mcweb.entrypoint.CloudSite;
-import org.cloudbus.mcweb.entrypoint.CloudSiteResponse;
-import org.cloudbus.mcweb.entrypoint.UserRequest;
+import org.cloudbus.mcweb.entrypoint.EPUserRequest;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 
-public class UserRequestTest {
+public class EPUserRequestTest {
 
     @Test
     public void testAllCloudsHaveLatencyBelowSLA() {
         // Create user request
-        UserRequest req = new UserRequest("127.0.0.0", "nik");
+        EPUserRequest req = new EPUserRequest("127.0.0.0", "nik");
 
         // Create cloud sites
         CloudSite cs1 = new CloudSite("CS1", "127.0.0.1", "127.0.0.1");
@@ -40,10 +40,10 @@ public class UserRequestTest {
 
         // Set up the response from each cloud site, them to the 
         // user request and validate the state
-        CloudSiteResponse cs1Response = new CloudSiteResponse(true, 20, cs1);
-        CloudSiteResponse cs2Response = new CloudSiteResponse(true, 15, cs2);
-        CloudSiteResponse cs3Response = new CloudSiteResponse(false, 10, cs3);
-        CloudSiteResponse cs4Response = new CloudSiteResponse(true, 20, cs4);
+        EPAdmissionControllerResponse cs1Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 20, cs1);
+        EPAdmissionControllerResponse cs2Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 15, cs2);
+        EPAdmissionControllerResponse cs3Response = new EPAdmissionControllerResponse(req.getUserToken(), false, 10, cs3);
+        EPAdmissionControllerResponse cs4Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 20, cs4);
         
         validateViableCloudSiteResponses(req.viableCloudSiteResponses, 0);
         
@@ -67,7 +67,7 @@ public class UserRequestTest {
     @Test
     public void testAllCloudsHaveLatencyAboveSLA() {
         // Create user request
-        UserRequest req = new UserRequest("127.0.0.0", "nik");
+        EPUserRequest req = new EPUserRequest("127.0.0.0", "nik");
 
         // Create cloud sites
         CloudSite cs1 = new CloudSite("CS1", "127.0.0.1", "127.0.0.1");
@@ -88,10 +88,10 @@ public class UserRequestTest {
 
         // Set up the response from each cloud site, them to the 
         // user request and validate the state
-        CloudSiteResponse cs1Response = new CloudSiteResponse(true, 20, cs1);
-        CloudSiteResponse cs2Response = new CloudSiteResponse(true, 15, cs2);
-        CloudSiteResponse cs3Response = new CloudSiteResponse(false, 10, cs3);
-        CloudSiteResponse cs4Response = new CloudSiteResponse(true, 20, cs4);
+        EPAdmissionControllerResponse cs1Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 20, cs1);
+        EPAdmissionControllerResponse cs2Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 15, cs2);
+        EPAdmissionControllerResponse cs3Response = new EPAdmissionControllerResponse(req.getUserToken(), false, 10, cs3);
+        EPAdmissionControllerResponse cs4Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 20, cs4);
         
         validateViableCloudSiteResponses(req.viableCloudSiteResponses, 0);
         
@@ -115,7 +115,7 @@ public class UserRequestTest {
     @Test
     public void testCloudsBelowAndAboveLatencySLA() {
         // Create user request
-        UserRequest req = new UserRequest("127.0.0.0", "nik");
+        EPUserRequest req = new EPUserRequest("127.0.0.0", "nik");
 
         // Create cloud sites
         CloudSite cs1 = new CloudSite("CS1", "127.0.0.1", "127.0.0.1");
@@ -136,10 +136,10 @@ public class UserRequestTest {
 
         // Set up the response from each cloud site, them to the 
         // user request and validate the state
-        CloudSiteResponse cs1Response = new CloudSiteResponse(true, 20, cs1);
-        CloudSiteResponse cs2Response = new CloudSiteResponse(true, 15, cs2);
-        CloudSiteResponse cs3Response = new CloudSiteResponse(false, 10, cs3);
-        CloudSiteResponse cs4Response = new CloudSiteResponse(true, 19, cs4);
+        EPAdmissionControllerResponse cs1Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 20, cs1);
+        EPAdmissionControllerResponse cs2Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 15, cs2);
+        EPAdmissionControllerResponse cs3Response = new EPAdmissionControllerResponse(req.getUserToken(), false, 10, cs3);
+        EPAdmissionControllerResponse cs4Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 19, cs4);
         
         validateViableCloudSiteResponses(req.viableCloudSiteResponses, 0);
         
@@ -164,7 +164,7 @@ public class UserRequestTest {
     @Test
     public void testSingleCloud() {
         // Create user request
-        UserRequest req = new UserRequest("127.0.0.0", "nik");
+        EPUserRequest req = new EPUserRequest("127.0.0.0", "nik");
 
         // Create cloud sites
         CloudSite cs1 = new CloudSite("CS1", "127.0.0.1", "127.0.0.1");
@@ -179,7 +179,7 @@ public class UserRequestTest {
 
         // Set up the response from each cloud site, them to the 
         // user request and validate the state
-        CloudSiteResponse cs1Response = new CloudSiteResponse(true, 20, cs1);
+        EPAdmissionControllerResponse cs1Response = new EPAdmissionControllerResponse(req.getUserToken(), true, 20, cs1);
         
         validateViableCloudSiteResponses(req.viableCloudSiteResponses, 0);
         
@@ -194,7 +194,7 @@ public class UserRequestTest {
     @Test
     public void testAllUneligible() {
         // Create user request
-        UserRequest req = new UserRequest("127.0.0.0", "nik");
+        EPUserRequest req = new EPUserRequest("127.0.0.0", "nik");
 
         // Create cloud sites
         CloudSite cs1 = new CloudSite("CS1", "127.0.0.1", "127.0.0.1");
@@ -211,9 +211,9 @@ public class UserRequestTest {
 
         // Set up the response from each cloud site, them to the 
         // user request and validate the state
-        CloudSiteResponse cs1Response = new CloudSiteResponse(false, 20, cs1);
-        CloudSiteResponse cs2Response = new CloudSiteResponse(false, 15, cs2);
-        CloudSiteResponse cs3Response = new CloudSiteResponse(false, 10, cs3);
+        EPAdmissionControllerResponse cs1Response = new EPAdmissionControllerResponse(req.getUserToken(), false, 20, cs1);
+        EPAdmissionControllerResponse cs2Response = new EPAdmissionControllerResponse(req.getUserToken(), false, 15, cs2);
+        EPAdmissionControllerResponse cs3Response = new EPAdmissionControllerResponse(req.getUserToken(), false, 10, cs3);
         
         validateViableCloudSiteResponses(req.viableCloudSiteResponses, 0);
         
@@ -231,12 +231,12 @@ public class UserRequestTest {
         assertNull(cs);
     }
     
-    private static void validateViableCloudSiteResponses(List<CloudSiteResponse> responses, int expectedSize) {
+    private static void validateViableCloudSiteResponses(List<EPAdmissionControllerResponse> responses, int expectedSize) {
         assertEquals(expectedSize, responses.size());
         if (responses.size() > 1) {
             for (int i = 0; i < responses.size() - 1; i++) {
-                CloudSiteResponse curr = responses.get(i);
-                CloudSiteResponse next = responses.get(i+1);
+                AdmissionControllerResponse curr = responses.get(i);
+                AdmissionControllerResponse next = responses.get(i+1);
                 assertTrue(curr.isEligible());
                 assertTrue(next.isEligible());
                 

@@ -1,10 +1,8 @@
 package org.cloudbus.mcweb.entrypoint;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
@@ -21,13 +19,13 @@ import org.cloudbus.cloudsim.ex.geolocation.IGeolocationService;
 import org.cloudbus.cloudsim.ex.geolocation.geoip2.GeoIP2PingERService;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 
 import static org.cloudbus.mcweb.entrypoint.EntryPointConfigUtil.*;
+import static org.cloudbus.mcweb.util.Closeables.*;
 
 /**
  * Represents an entry point in the system. Callers must call one of the
- * {@link configureInstance} methods before using {@link getInstance}.
+ * {@link configure} methods before using the instance.
  * 
  * @author nikolay.grozev
  *
@@ -40,7 +38,7 @@ public final class EntryPoint implements AutoCloseable {
     /** List of all cloud sites in the multi-cloud env. */
     private List<CloudSite> cloudSites = new ArrayList<>();
     /** List of the incoming users, which have not been redirected yet. */
-    private List<UserRequest> userRequests = new ArrayList<>();
+    private List<EPUserRequest> userRequests = new ArrayList<>();
     /** ThreadPool for connecting to admission controllers asynch. */
     private ExecutorService cloudSitesThreadPool;
 
@@ -67,7 +65,7 @@ public final class EntryPoint implements AutoCloseable {
     private long maxRequestPeriod = -1;
 
     /** Singleton instance. */
-    private static EntryPoint instance;
+    private static final EntryPoint instance = new EntryPoint();
 
     /** Suppress instantiation. */
     private EntryPoint() {
@@ -79,9 +77,6 @@ public final class EntryPoint implements AutoCloseable {
      * @return the only instance of the singleton.
      */
     public static synchronized EntryPoint getInstance() {
-        if (instance == null) {
-            instance = new EntryPoint();
-        }
         return instance;
     }
 
@@ -101,7 +96,7 @@ public final class EntryPoint implements AutoCloseable {
      * @param geoLocationService
      *            - the geolocation service to use. Must not be null.
      */
-    public static synchronized void configureInstance(final InputStream cloudSitesStream,
+    public void configure(final InputStream cloudSitesStream,
             final InputStream configStream, 
             final Function<String[], CloudSite> cloudSiteFactory,
             final IGeolocationService geoLocationService) {
@@ -109,27 +104,28 @@ public final class EntryPoint implements AutoCloseable {
         Preconditions.checkNotNull(configStream);
         Preconditions.checkNotNull(geoLocationService);
         Preconditions.checkNotNull(cloudSiteFactory);
-
-        //Release previous resources.
-        if (instance != null){
+        
+        synchronized(lock) {
+            //Release previous resources.
             try {
-                instance.close();
+                close();
             } catch (Exception e) {
                 throw new IllegalStateException("Could not close previous EntryPoint", e);
             }
+            
+            LOG.info("Configure the entry point.");
+            
+            this.cloudSites = Collections.unmodifiableList(parseCloudSites(cloudSitesStream, cloudSiteFactory));
+    
+            Properties props = parseConfig(configStream);
+            this.latencySLA = Double.parseDouble(props.getProperty(LATENCY_SLA_PROP));
+            this.periodBetweenBatchUserDispatch = Long.parseLong(props.getProperty(PERIOD_BETWEEN_BATCH_USER_DISPATCH_PROP));
+            this.cloudSiteResponseTimeout = Long.parseLong(props.getProperty(CLOUD_SITE_RESPONSE_TIMEOUT_PROP));
+            this.maxRequestPeriod = Long.parseLong(props.getProperty(MAX_REQUEST_PERIOD_PROP));
+    
+            this.geoLocationService = geoLocationService;
+            this.cloudSitesThreadPool = Executors.newCachedThreadPool();
         }
-        
-        getInstance().cloudSites = Collections.unmodifiableList(parseCloudSites(cloudSitesStream, cloudSiteFactory));
-
-        Properties props = parseConfig(configStream);
-        getInstance().latencySLA = Double.parseDouble(props.getProperty(LATENCY_SLA_PROP));
-        getInstance().periodBetweenBatchUserDispatch = Long.parseLong(props
-                .getProperty(PERIOD_BETWEEN_BATCH_USER_DISPATCH_PROP));
-        getInstance().cloudSiteResponseTimeout = Long.parseLong(props.getProperty(CLOUD_SITE_RESPONSE_TIMEOUT_PROP));
-        getInstance().maxRequestPeriod = Long.parseLong(props.getProperty(MAX_REQUEST_PERIOD_PROP));
-
-        getInstance().geoLocationService = geoLocationService;
-        getInstance().cloudSitesThreadPool = Executors.newCachedThreadPool();
     }
 
     /**
@@ -146,16 +142,16 @@ public final class EntryPoint implements AutoCloseable {
      *            array of [name, admissionControllerAddress,
      *            loadBalancerAddress]. Must not be null.
      */
-    public static synchronized void configureInstance(final InputStream cloudSitesStream,
+    public synchronized void configure(final InputStream cloudSitesStream,
             final InputStream configStream, 
             final Function<String[], CloudSite> cloudSiteFactory) {
-        configureInstance(cloudSitesStream, configStream, cloudSiteFactory, new GeoIP2PingERService());
+        configure(cloudSitesStream, configStream, cloudSiteFactory, new GeoIP2PingERService());
     }
     
     private void processRequests() {
         synchronized (lock) {
             final CountDownLatch latch = new CountDownLatch(cloudSites.size());
-            final List<UserRequest> userRequestsDeepCopy = new ArrayList<UserRequest>(userRequests);
+            final List<EPUserRequest> userRequestsDeepCopy = new ArrayList<EPUserRequest>(userRequests);
             for (CloudSite cloudSite : cloudSites) {
                 cloudSitesThreadPool.execute(new Runnable() {
                     @Override
@@ -182,7 +178,7 @@ public final class EntryPoint implements AutoCloseable {
         }
     }
 
-    public void request(final UserRequest req) {
+    public void request(final EPUserRequest req) {
         Preconditions.checkNotNull(req);
 
         synchronized (lock) {
@@ -227,66 +223,33 @@ public final class EntryPoint implements AutoCloseable {
      */
     @Override
     public void close() throws Exception {
+        LOG.info("Closing the entry point");
+        
         synchronized (EntryPoint.class) {
-            Closer closer = Closer.create();
+            List<AutoCloseable> closeables = new ArrayList<AutoCloseable>();
             
-            // Stop the thread, which submits the requests
-            closer.register(() -> {
-                if (bacthRequestTimer != null) {
-                    bacthRequestTimer.purge();
-
-                }
-            });
-            closer.register(() -> {
-                if(bacthRequestTimerTask != null) {
-                    bacthRequestTimerTask.cancel();
-                    bacthRequestTimerTask = null;
-                }
-            });
+            // Stop the request timer thread
+            closeables.add(maybeCloseable(bacthRequestTimer, () -> bacthRequestTimer.purge()));
+            closeables.add(maybeCloseable(bacthRequestTimerTask, () -> bacthRequestTimerTask.cancel()));
             
             // Notify all waiting threads
-            closer.register(() -> {
-                synchronized (lock) {
-                    lock.notifyAll();
-                }
-            });
+            closeables.add(notifyAllCloseable(lock));
             
             // Stop all threads from the pool
-            closer.register(() -> cloudSitesThreadPool.shutdown());
+            closeables.add(maybeCloseable(cloudSitesThreadPool, () -> cloudSitesThreadPool.shutdown()));
             
             // Stop all cloud sites
-            for (CloudSite cloudSite : cloudSites) {
-                closer.register(() -> {
-                    try {
-                        cloudSite.close();   
-                    } catch (Exception e) {
-                        // because closer uses Closable, not AutoClosable
-                        throw new IOException(e);
-                    }
-                });
-            }
+            closeables.addAll(cloudSites);
             
             // Close the geo-location
-            closer.register(geoLocationService);
+            closeables.add(geoLocationService);
 
-            closer.register(() -> {
-                cloudSites = new ArrayList<>();
-                userRequests = new ArrayList<>();
-            });
-            
-            //Close them all
-            closer.close();
-        }
-    }
-
-    
-    @SuppressWarnings("unused")
-    private static void close(Iterator<AutoCloseable> closables) throws Exception {
-        if (closables.hasNext()) {
             try {
-                closables.next().close();
-            } finally{
-                close(closables);
+                closeAll(closeables);
+            } finally {
+                cloudSites = new ArrayList<>();
+                bacthRequestTimer = null;
+                bacthRequestTimerTask = null;
             }
         }
     }
