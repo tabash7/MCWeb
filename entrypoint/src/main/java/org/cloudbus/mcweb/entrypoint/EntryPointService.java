@@ -7,20 +7,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import static org.cloudbus.mcweb.util.Configs.*;
 
-import com.google.gson.Gson;
-
-
-@Path("/entry-point")
+@Path(EP_PATH)
 public class EntryPointService {
-
-    @SuppressWarnings("unused")
-    private static final Gson gson = new Gson();
     
     @GET
-    @Path("test/{sourceIP}/{userToken}")
+    @Path(EP_SERVICE_PATH)
     @Produces(MediaType.TEXT_PLAIN)
-    public String test(@PathParam("sourceIP") final String sourceIP, @PathParam("userToken") final String userToken) {
+    public String test(@PathParam(SOURCE_IP_PARAM) final String sourceIP, @PathParam(USER_TOKEN_PARAM) final String userToken) {
         EPUserRequest req = new EPUserRequest(sourceIP, userToken);
         EntryPoint.getInstance().request(req);
         CloudSite cs = req.selectCloudSite();

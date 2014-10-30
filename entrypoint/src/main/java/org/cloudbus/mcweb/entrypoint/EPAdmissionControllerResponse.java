@@ -34,6 +34,11 @@ public class EPAdmissionControllerResponse extends AdmissionControllerResponse {
 
         this.site = site;
     }
+    
+    
+    public EPAdmissionControllerResponse(final AdmissionControllerResponse response, final CloudSite site) {
+        this(response.getUserToken(), response.isEligible(), response.getCostEstimation(), site);
+    }
 
     /**
      * Returns the cloud site, whose response this is.

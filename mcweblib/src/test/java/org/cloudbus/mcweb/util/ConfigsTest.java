@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb;
+package org.cloudbus.mcweb.util;
 
 import static org.cloudbus.mcweb.util.Configs.streamFrom;
 import static org.junit.Assert.*;
@@ -7,12 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.cloudbus.mcweb.VMType;
 import org.cloudbus.mcweb.util.Configs;
 import org.junit.Test;
 
 import com.google.common.base.Preconditions;
 
-public class ConfigUtilTest {
+public class ConfigsTest {
     
     @Test(expected = IllegalStateException.class)  
     public void testParseDuplicateVMTypes() {  
@@ -64,6 +65,6 @@ public class ConfigUtilTest {
 
     public static InputStream classLoad(final String resource) {
         Preconditions.checkNotNull(resource);
-        return ConfigUtilTest.class.getResourceAsStream(resource);
+        return ConfigsTest.class.getResourceAsStream(resource);
     }
 }

@@ -18,7 +18,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.google.common.base.Preconditions;
 
 /**
- * Utility class for parsing configuration files.
+ * Utility class for parsing configuration files, and with common constants.
  * 
  * @author nikolay.grozev
  *
@@ -28,6 +28,24 @@ public final class Configs {
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(Configs.class.getCanonicalName());
 
+    /* --- Web services paths --- */
+    /** Service path. */
+    public static final String SERVICE_PATH = "/service";
+
+    public static final int DEFAULT_EP_PORT = 8080;
+    public static final String EP_PATH = "/entry-point";
+    public static final String SOURCE_IP_PARAM = "sourceIP";
+    public static final String USER_TOKEN_PARAM = "userToken";
+    public static final String EP_SERVICE_PATH = SERVICE_PATH + 
+            "/{" + SOURCE_IP_PARAM + "}/" +
+            "{" + USER_TOKEN_PARAM + "}";
+
+    public static final int DEFAULT_AC_PORT = DEFAULT_EP_PORT + 1;
+    public static final String AC_SERVICE_PATH = SERVICE_PATH;
+    public static final String AC_PATH = "/admission-control";
+    public static final String USER_TOKENS_PARAM = "userTokens";
+    
+    /* --- CSV constants --- */
     /** The separator in the csv file. */
     public static final char CSV_SEP = ';';
     /** The quote symbol in the csv and tsv files. */

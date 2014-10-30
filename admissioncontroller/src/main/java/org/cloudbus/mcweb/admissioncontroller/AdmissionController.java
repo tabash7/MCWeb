@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.cloudbus.mcweb.AdmissionControllerResponse;
 import org.cloudbus.mcweb.ServerFarm;
-import org.cloudbus.mcweb.UserRequest;
 
 import com.google.common.base.Preconditions;
 
@@ -24,7 +23,7 @@ public class AdmissionController implements AutoCloseable {
     private static final Logger LOG = Logger.getLogger(AdmissionController.class.getCanonicalName());
     
     /** Application specific eligibility and performance rules. */
-    private IAdmissionControllerRule rules;
+    private IAdmissionControllerRule rule;
     /** The server farm. */
     private ServerFarm serverFarm;
     
@@ -42,11 +41,11 @@ public class AdmissionController implements AutoCloseable {
 
     /**
      * Configures this admission controller.
-     * @param rules - the application specific rules. Must not be null.
+     * @param rule - the application specific rules. Must not be null.
      * @param serverFarm - the server farm. Must not be null.
      */
-    public synchronized void configure(final IAdmissionControllerRule rules, final ServerFarm serverFarm) {
-        Preconditions.checkNotNull(rules);
+    public synchronized void configure(final IAdmissionControllerRule rule, final ServerFarm serverFarm) {
+        Preconditions.checkNotNull(rule);
         Preconditions.checkNotNull(serverFarm);
         
         synchronized (instance) {
@@ -58,34 +57,34 @@ public class AdmissionController implements AutoCloseable {
             }
             
             LOG.info("Configure the admission controller.");
-            this.rules = rules;
+            this.rule = rule;
             this.serverFarm = serverFarm;
         }
     }
 
     /**
      * Returns the responses for the users.
-     * @param requests - the end user requests. Must not be null. Elements must not be null.
+     * @param userTokens - the end users' tokens. Must not be null. Elements must not be null.
      * @return the responses for the users.
      */
-    public synchronized List<AdmissionControllerResponse> enquire(final List<UserRequest> requests) {
-        Preconditions.checkNotNull(requests);
-        return requests.stream().map(this::respond).collect(Collectors.toList());
+    public synchronized List<AdmissionControllerResponse> enquire(final List<String> userTokens) {
+        Preconditions.checkNotNull(userTokens);
+        return userTokens.stream().map(this::respond).collect(Collectors.toList());
     }
 
-    private AdmissionControllerResponse respond(final UserRequest userRequest) {
-        Preconditions.checkNotNull(userRequest);
-        boolean eligible = this.rules.isEligible(userRequest.getUserToken());
+    private AdmissionControllerResponse respond(final String userToken) {
+        Preconditions.checkNotNull(userToken);
+        boolean eligible = this.rule.isEligible(userToken);
         double costEstimation = Double.NaN;
         if(eligible) {
-            costEstimation = rules.backOff() ? Double.MAX_VALUE : this.serverFarm.costPerUser();
+            costEstimation = rule.backOff() ? Double.MAX_VALUE : this.serverFarm.costPerUser();
         }
-        return new AdmissionControllerResponse(userRequest.getUserToken(), eligible, costEstimation);
+        return new AdmissionControllerResponse(userToken, eligible, costEstimation);
     }
     
     @Override
     public synchronized void close() throws Exception {
         LOG.info("Closing the admission controller");
-        closeAll(serverFarm, rules);
+        closeAll(serverFarm, rule);
     }
 }

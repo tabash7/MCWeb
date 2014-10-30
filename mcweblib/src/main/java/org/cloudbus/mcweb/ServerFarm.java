@@ -1,6 +1,5 @@
 package org.cloudbus.mcweb;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -12,8 +11,9 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.cloudbus.mcweb.util.Closeables;
+
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 
 /**
  * Represents a set/farm of servers.
@@ -167,22 +167,6 @@ public class ServerFarm implements AutoCloseable {
     @Override
     public synchronized void close() throws Exception {
         LOG.log(Level.INFO, "Closing {0}", new Object[]{this});
-        
-        Closer closer = Closer.create();
-        
-        // Stop all cloud sites
-        for (VirtualMachine vm : servers.values()) {
-            closer.register(() -> {
-                try {
-                    vm.close();   
-                } catch (Exception e) {
-                    // because closer uses Closable, not AutoClosable
-                    throw new IOException(e);
-                }
-            });
-        }
-        
-        //Close them all
-        closer.close();
+        Closeables.closeAll(servers.values());
     }
 }
