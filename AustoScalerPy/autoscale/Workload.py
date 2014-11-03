@@ -44,7 +44,6 @@ class Workload(BaseAutoscalingClass):
         self.workloadLock.release()
         
     def getCurrentNumUsers(self):
-        result = 0
         self.workloadLock.acquire()
         result = self.currentUsers
         self.workloadLock.release()

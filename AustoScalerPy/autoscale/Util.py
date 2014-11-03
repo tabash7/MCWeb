@@ -12,6 +12,12 @@ from time import strftime
 log = logging.getLogger(__name__)
 
 def extractVal(value):
+    """
+    Converts the provided string value to an int, float or string if possible, in this order.
+    @param value: the value to convert. Must not be None.
+    """
+    assert value is not None, "Value is None"
+    
     trimmed = value.strip()
     try:
         return int(trimmed)
@@ -22,15 +28,41 @@ def extractVal(value):
             return str(trimmed)
 
 def convertMem(mem, fromCode="GB", toCode="MB"):
+    """
+    Converts the specified memory quantity from one unit to another. Supported units are ["B", "KB", "MB", "GB", "TB", "PB"].
+    @param mem: a memory measurement. Must not be None. Must not be negative.
+    @param fromCode: the code of the source measurement unit. Must be one of the above.
+    @param toCode: the code of the result measurement unit. Must be one of the above.
+    @return: the resulted quantity in the destination unit.   
+    """
+    assert mem is not None and (isinstance(mem, int) or isinstance(mem, float)) and mem >= 0, "Invalid memory: " % (mem)
+    
     indices = ["B", "KB", "MB", "GB", "TB", "PB"]
+    assert fromCode is not None and fromCode.strip().upper() in indices, "Invalid from code: %s" % (fromCode)
+    assert toCode is not None and toCode.strip().upper() in indices, "Invalid to code: %s" % (toCode)
+    
     fromIdx = indices.index(fromCode.strip().upper())
     toIdx = indices.index(toCode.strip().upper())
     return mem * 1024 ** (fromIdx - toIdx)
 
 def formatOutput(output):
+    """
+    Merges the specified output lines into a single string.
+    @param output: a collection of strings. Must not be None.
+    @return: a merged string of the specified output lines.
+    """
+    assert output is not None, "Output is None"
     return "\n" + " ".join(output)
 
 def execLocal(command):
+    """
+    Attempts to execute the command on the local system.
+    @param command: the command to execute. Must not be None.  
+    @raise ValueError: fi the command fails. 
+    @return: a list of ouput lines.
+    """
+    assert command is not None, "Output is None"
+    
     p = subprocess.Popen(command, stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell=True)
     log.info("Running \"{0}\"".format(command))
     output, err = p.communicate()
@@ -46,9 +78,21 @@ def execLocal(command):
     return filterEmptyStrings(output.split("\n")) 
 
 def filterEmptyStrings(collection):
+    """
+    Returns a sub-collection of the specified one, whose elements are not empty strings.
+    @param collection: a collection. Must not be None.
+    @return: a sub-collection of the specified one, whose elements are not empty strings.    
+    """
+    assert collection is not None, "Collection is None"
     return filter(lambda s: str(s).strip() != "", collection)
 
 def formatCurrTime(fmt="%H:%M:%S"):
+    """
+    Returns the current time, formatted in accordance with the specified format.
+    @param fmt: the format string. Must not be None.
+    @return: the current time, formatted in accordance with the specified format.  
+    """
+    assert fmt is not None, "The format is None"
     return strftime(fmt)
 
 def statHeader(trainingResFile, overwrite=True):

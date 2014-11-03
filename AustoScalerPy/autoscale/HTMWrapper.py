@@ -10,18 +10,28 @@ from autoscale import ModelParams
 from nupic.frameworks.opf.modelfactory import ModelFactory
 from os.path import os
 import shutil
+from autoscale.VMMeasurement import VMMeasurement
 
 log = logging.getLogger(__name__)
 
 
 class HTMWrapper(object):
+    """ Wraps a Hierarchical Temporal Memory (HTM) model. """
     
     def __init__(self):
+        """Constr."""
         self.model = ModelFactory.create(ModelParams.MODEL_PARAMS)
         self.model.enableInference({'predictedField': 'cpuUtil'})
         self.headers = ["timestamp", "cpuUtil", "ramUtil", "diskUtil", "numUsers"];
     
     def train(self, measurement):
+        """
+        Trains the underlying HTM with the sample.
+        @param measurement: An instance of VMMeasurement. Must not be None. 
+        @return: the anomaly score of the measurment.
+        """
+        assert isinstance(measurement, VMMeasurement), "Invalid measurement: %s" % (measurement)
+        
         modelInput = {}
 
         scale = 1
@@ -34,10 +44,14 @@ class HTMWrapper(object):
         result = self.model.run(modelInput)
         anomalyScore = result.inferences['anomalyScore']
         measurement.anomaly = anomalyScore
-        log.info("Training anomaly with [%d, %.5f, %.5f] Anomaly: %.2f " % (modelInput["numUsers"], modelInput["cpuUtil"], modelInput["ramUtil"], anomalyScore))
+        log.info("Training anomaly with [%d, %.5f, %.5f] Anomaly: %.2f ", modelInput["numUsers"], modelInput["cpuUtil"], modelInput["ramUtil"], anomalyScore)
         return anomalyScore
     
     def clone(self):
+        """
+        Returns a deep copy of this object.
+        @return: a deep copy of this object. 
+        """
         tmpDirLocation = os.path.expanduser("~/buffer-htm")
         # Make sure the directory exists and it is empty
         if os.path.exists(tmpDirLocation):
@@ -58,6 +72,7 @@ def createModel():
     return ModelFactory.create(ModelParams.MODEL_PARAMS)
 
 def runVMAnomaly():
+    """For test purposes only!"""
     model = createModel()
     model.enableInference({'predictedField': 'cpuUtil'})
   
