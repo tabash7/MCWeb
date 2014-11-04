@@ -15,9 +15,25 @@ log = logging.getLogger(__name__)
 
 
 class VMType(BaseAutoscalingClass):
+    """A Virtual Machine type."""
     
     def __init__(self, code, declaredCpuCapacity, declaredRAMCapacityKB, costPerTimeUnit, numMeasurements = 10):
+        """
+        Constr.
+        @param code: the code of the VM type - e.g. "m1.small". Must not be None.
+        @param declaredCpuCapacity: the declared CPU capacity (e.g. ECU). Must not be None. Must be positive.
+        @param declaredRAMCapacityKB: the declared RAM capacity in KB. Must not be None. Must be positive.
+        @param costPerTimeUnit: the cost per time unit (e.g. per hour or minute). Must not be None. Must be positive.
+        @param numMeasurements: how many measurements to keep to determine the capacity. Must not be None. Must be a positive integer
+        """
         super(VMType, self).__init__(code)
+        
+        assert code is not None, "VM type code is None"
+        assert declaredCpuCapacity is not None and declaredCpuCapacity > 0, "Invalid declared CPU capacity %s" % (declaredCpuCapacity)
+        assert declaredRAMCapacityKB is not None and declaredRAMCapacityKB > 0, "Invalid declared RAM capacity %s" % (declaredRAMCapacityKB)
+        assert costPerTimeUnit is not None and costPerTimeUnit > 0, "Invalid cost %s" % (costPerTimeUnit)
+        assert numMeasurements is not None and numMeasurements > 0 and isinstance(numMeasurements, int), "Invalid number of measurements %s" % (numMeasurements)
+        
         self.code = code
         self.declaredCpuCapacity = declaredCpuCapacity
         self.declaredRAMCapacityKB = declaredRAMCapacityKB
@@ -25,14 +41,27 @@ class VMType(BaseAutoscalingClass):
         self.measruements = collections.deque([], numMeasurements)
     
     def addMeasurement(self, m):
+        """
+        Adds a measurement for this VM type. If None - nothing is added.
+        @param m: The measurement. If not None, must be an instance of VMMeasurement. 
+        """
         if m != None:
+            assert isinstance(m, VMMeasurement), "Invalid measurement %s" % (m)
             self.measruements.append(m)
     
     def normalisedCPUCapacity(self):
+        """
+        Returns the normalised CPU capacity of the VM type - in the range [0,1].
+        @return: the normalised CPU capacity of the VM type - in the range [0,1].
+        """
         normCPUCapacities = map(lambda m: m.normaliseCpuCapacity(), self.measruements)
         return float(sum(normCPUCapacities)) / float(len(normCPUCapacities)) if normCPUCapacities else -1
 
     def normalisedRAMCapacity(self):
+        """
+        Returns the normalised RAM capacity of the VM type - in the range [0,1].
+        @return: the normalised RAM capacity of the VM type - in the range [0,1].
+        """
         return float(self.declaredRAMCapacityKB) / VMMeasurement.maxRAMInKb
     
     @staticmethod

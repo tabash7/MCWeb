@@ -8,6 +8,7 @@ from __builtin__ import ValueError
 import logging
 import math
 from time import strftime
+import os
 
 log = logging.getLogger(__name__)
 
@@ -173,5 +174,11 @@ def getMk(k, lr, lrk, epochCode = 1):
 def sign(x):
     return x if x >= 0 else -x
 
+def baseFolder():
+    currentScriptPath = os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.dirname(currentScriptPath))
 
+def scriptPath(scriptFile):
+    assert scriptFile is not None, "Script file is None"
+    return os.path.join(baseFolder(), "ShellScripts", scriptFile)
 

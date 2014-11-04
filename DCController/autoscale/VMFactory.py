@@ -3,19 +3,17 @@ Created on 10/06/2014
 
 @author: nikolay
 '''
+import os
+import logging
 from autoscale.Util import execLocal, formatOutput
 from autoscale.AppServer import AppServer
-import logging
 from autoscale.LoadBalancer import LoadBalancer
-from autoscale.Client import Client
-import os
+from autoscale.VMType import VMType
 
 log = logging.getLogger(__name__)
 
 class VMFactory(object):
-    """
-    A factory for VMs - i.e. app servers, load balancers etc.
-    """
+    """A factory for VMs, Clients and load balancer - i.e. app servers, load balancers etc."""
     
     def __init__(self, providerId, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName,
                  keyPairName, groupName, mavenPrjPath, pemFile, monitoringScript, userName, runConfig):
@@ -69,13 +67,24 @@ class VMFactory(object):
         self.runConfig          = runConfig
     
     def createVM(self, readableName, vmType, address = None, htm=None):
+        """
+        Creates an App Server VM.
+        @param readableName: The readable name of the server. Must not be null. 
+        @param vmType: The VM type (an instance of VMType). Must not be null.
+        @param address: The address of the VM. If None, a new VM will be launched.
+        @param htm: The HTM of the VM. If None, a new HTM will be created.
+        @return: an App Server VM.
+        """
+        assert readableName is not None, "The readable name is None"
+        assert vmType is not None or not isinstance(vmType, VMType), "Invalid VM type %s" % vmType
+        
         vmAddress = address
         if vmAddress is None:
-            log.info("Starting a VM {0} with type {1}".format(readableName, vmType.code))
+            log.info("Starting a VM %s with type %s", readableName, vmType.code)
             vmAddress = self._launchVM(vmType.code)
         
         vm = AppServer(readableName, vmAddress, self.pemFile, vmType, self.monitoringScript, userName=self.userName, htm=htm)
-        log.info("Started VM {0} at address {1}".format(readableName, vm.address))
+        log.info("Started VM %s at address %s", readableName, vm.address)
         return vm
     
     def _launchVM(self, hardwareId):
@@ -91,7 +100,11 @@ class VMFactory(object):
         return out[0]
     
     def createLoadBalancer(self, address):
+        """
+        Creates a load balancer with the specified address.
+        @param address: The address of the VM. Must not be null.
+        @return: a load balancer with the specified address.
+        """
+        assert address is not None, "Address is None"
         return LoadBalancer(readableName="Load Balancer", address=address, pemFile=self.pemFile, userName=self.userName)
     
-    def createClient(self, address):
-        return Client(readableName="Client", address=address, pemFile=self.pemFile, runConfig=self.runConfig, userName = self.userName)

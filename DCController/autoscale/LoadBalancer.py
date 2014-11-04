@@ -38,8 +38,8 @@ class LoadBalancer(BaseSSHWrapper):
     
     def remServers(self, *servers):
         """
-        Removes the servers to the load balancer.
-        @param servers: the servers to add. Must not be None. Must be instances of AppServer 
+        Removes the servers from the load balancer.
+        @param servers: the servers to remove. Must not be None. Must be instances of AppServer.
         """
         assert servers is not None, "Servers are None"
         assert reduce(lambda x, y: x and y, map(lambda z:isinstance(z, AppServer), servers)), "Invalid servers %s" % str(servers)

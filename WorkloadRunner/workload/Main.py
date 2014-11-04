@@ -4,19 +4,18 @@ Created on 05/06/2014
 @author: nikolay
 '''
 from __builtin__ import map
+import sys
+import time
 import collections
 import logging
 from os.path import os
 from sys import maxint
-import sys
-import time
 
 from autoscale.FANNWrapper import FANNWrapper
-from autoscale.Util import convertMem, sigmoid, nextEpoch, getMk, getLrk, \
-    formatCurrTime, statHeader, statLine, printTest
-from autoscale.VMFactory import VMFactory
 from autoscale.VMType import VMType
-from autoscale.Workload import Workload
+from workload.Workload import Workload
+from workload.ClientFactory import ClientFactory
+from autoscale.Util import convertMem, sigmoid, nextEpoch, getMk, getLrk, formatCurrTime, statHeader, statLine, printTest
 
 
 log = logging.getLogger(__name__)
@@ -71,7 +70,7 @@ firstAppServerAddress = "ec2-54-253-205-116.ap-southeast-2.compute.amazonaws.com
 clientAddress = "ec2-54-79-149-247.ap-southeast-2.compute.amazonaws.com"
 
 ##== Factory for creating objects that manage VMs, Load Balancer and Clients
-factory = VMFactory(providerId, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName, keyPairName,\
+factory = ClientFactory(providerId, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName, keyPairName,\
                      groupName, mavenPrjPath, pemFile, monitoringScript, userName, runConfig)
 
 ##== VM types

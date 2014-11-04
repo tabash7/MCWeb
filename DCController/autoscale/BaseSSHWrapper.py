@@ -7,19 +7,17 @@ import time
 import socket
 import paramiko
 import logging
+import os
 from paramiko.client import SSHClient
 from paramiko.ssh_exception import SSHException
 from autoscale.BaseAutoscalingClass import BaseAutoscalingClass
 from autoscale.Util import formatOutput
-import os
 
 log = logging.getLogger(__name__)
 
 
 class BaseSSHWrapper(BaseAutoscalingClass):
-    """
-    A base class, which can connect via SSH to a machine.
-    """
+    """ A base class, which can connect via SSH to a machine."""
     
     def __init__(self, readableName, address, pemFile=None, password = None, userName="ubuntu", timeout=600):
         """
@@ -51,7 +49,7 @@ class BaseSSHWrapper(BaseAutoscalingClass):
     
     def initSSHClient(self):
         """
-        Tries to reestablish connection with the host.
+        Tries to establish connection with the host.
         @raise SSHException: if the connection could not be established. 
         """
         self.client = None
@@ -93,7 +91,6 @@ class BaseSSHWrapper(BaseAutoscalingClass):
             self.initSSHClient()
         return self.client
 
-
     def execRemoteCommand(self, command, asynch=False, recoverFromFailure=True):
         """ 
         Executes the command on the remove machine.
@@ -103,7 +100,6 @@ class BaseSSHWrapper(BaseAutoscalingClass):
         @return the output of the command (a list of text lines), if it was run synchrounously.
         @raise SSHException: if a connection could not be established, or the command gave an error. 
         """
-        
         assert command is not None, "Command is None"
         assert asynch is not None, "Asynch is None"
         assert recoverFromFailure is not None, "recoverFromFailure is None"
