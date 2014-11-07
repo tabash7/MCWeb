@@ -9,6 +9,7 @@ import logging
 import math
 from time import strftime
 import os
+import time
 
 log = logging.getLogger(__name__)
 
@@ -86,6 +87,31 @@ def filterEmptyStrings(collection):
     """
     assert collection is not None, "Collection is None"
     return filter(lambda s: str(s).strip() != "", collection)
+
+def currentTimeSecs():
+    """
+    Returns the current time in seconds - floating point precision.
+    @return: the current time in seconds - floating point precision.
+    """
+    return time.time()
+
+def convertTime(time, fromCode="SEC", toCode="HOUR"):
+    """
+    Converts the specified memory quantity from one unit to another. Supported units are ["SEC", "MIN", "HOUR"].
+    @param time: a time measurement. Must not be None. Must not be negative.
+    @param fromCode: the code of the source measurement unit. Must be one of the above.
+    @param toCode: the code of the result measurement unit. Must be one of the above.
+    @return: the resulted quantity in the destination unit.   
+    """
+    assert time is not None and (isinstance(time, int) or isinstance(time, float)) and time >= 0, "Invalid time: " % (time)
+    
+    indices = ["SEC", "MIN", "HOUR"]
+    assert fromCode is not None and fromCode.strip().upper() in indices, "Invalid from code: %s" % (fromCode)
+    assert toCode is not None and toCode.strip().upper() in indices, "Invalid to code: %s" % (toCode)
+    
+    fromIdx = indices.index(fromCode.strip().upper())
+    toIdx = indices.index(toCode.strip().upper())
+    return time * 60 ** (fromIdx - toIdx)
 
 def formatCurrTime(fmt="%H:%M:%S"):
     """

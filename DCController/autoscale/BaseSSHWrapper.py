@@ -55,7 +55,7 @@ class BaseSSHWrapper(BaseAutoscalingClass):
         self.client = None
         
         waitPeriod = 10
-        attempts = 20
+        attempts = 10
         # Try to connect but not more than attempts times
         for i in range(attempts):
             # If not the first time - sleep a bit. Do not bombard the server with requests

@@ -66,7 +66,7 @@ class VMFactory(object):
         self.userName           = userName
         self.runConfig          = runConfig
     
-    def createVM(self, readableName, vmType, address = None, htm=None):
+    def createVM(self, readableName, vmType, address = None, htm=None, numVMs=1):
         """
         Creates an App Server VM.
         @param readableName: The readable name of the server. Must not be null. 
@@ -81,23 +81,23 @@ class VMFactory(object):
         vmAddress = address
         if vmAddress is None:
             log.info("Starting a VM %s with type %s", readableName, vmType.code)
-            vmAddress = self._launchVM(vmType.code)
+            vmAddress = self._launchVM(vmType.code, numVMs=1)
         
         vm = AppServer(readableName, vmAddress, self.pemFile, vmType, self.monitoringScript, userName=self.userName, htm=htm)
         log.info("Started VM %s at address %s", readableName, vm.address)
         return vm
     
-    def _launchVM(self, hardwareId):
+    def _launchVM(self, hardwareId, numVMs=1):
         startVMCommand = "mvn exec:java -Dexec.mainClass=org.cloudbus.provisionvm.JCloudsManager -Dexec.args=\"%s %s %s %s %s %s %s %s %s %s\" -q -f \"%s\"" \
         %(self.providerId, self.accesskeyid, self.secretkey, self.imageOwnerId, self.locationId, self.imageId, hardwareId, self.securityGroupName, \
-          self.keyPairName, self.groupName, self.mavenPrjPath)
+          self.keyPairName, self.groupName, numVMs, self.mavenPrjPath)
         
         log.debug("JClouds/Maven command " + startVMCommand)
         
         out = execLocal(startVMCommand)
         
-        assert 1 == len(out), "Output should be just an address, but it is:{0}".format(formatOutput(out))
-        return out[0]
+        assert numVMs == len(out), "Output should be just an address, but it is:{0}".format(formatOutput(out))
+        return out
     
     def createLoadBalancer(self, address):
         """

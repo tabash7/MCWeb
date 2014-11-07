@@ -9,7 +9,8 @@ from __builtin__ import map
 
 from autoscale.BaseSSHWrapper import BaseSSHWrapper
 from autoscale.HTMWrapper import HTMWrapper
-from autoscale.Util import extractVal, filterEmptyStrings, formatCurrTime, convertMem
+from autoscale.Util import extractVal, filterEmptyStrings, formatCurrTime, convertMem,\
+    currentTimeSecs
 from autoscale.VMMeasurement import VMMeasurement
 from autoscale.VMType import VMType
 
@@ -20,7 +21,7 @@ log = logging.getLogger(__name__)
 class AppServer(BaseSSHWrapper):
     """An application server in a server farm."""
     
-    def __init__(self, readableName, address, pemFile, vmType, monitoringScript, password = None,  userName="ubuntu", htm=None):
+    def __init__(self, readableName, address, pemFile, vmType, monitoringScript, billingPolicy, password = None,  userName="ubuntu", htm=None, startTimeSecs=None):
         """
         Constr.
         @param readableName: see superclass.
@@ -28,19 +29,26 @@ class AppServer(BaseSSHWrapper):
         @param pemFile: see superclass.
         @param vmType: The type of the VM. Must not be None. Must be an instance of VMType.
         @param monitoringScript: the location of the monitoring script. Must not be None. Must be valid.
+        @param billingPolicy: the billing policy. Must not be null.
         @param userName: see superclass.
         @param htm: The HTM to use, or None if a new HTM should be created.
+        @param startTimeSecs: the time, when the VM was started in milliseconds. If None - the VM is considered starting now. 
         """
         super(AppServer, self).__init__(readableName = readableName, address = address, pemFile = pemFile, userName = userName, password = password)
         
         assert htm is None or isinstance(htm, HTMWrapper), "Invalid HTM type %s" % type(htm)
         assert monitoringScript is not None and os.path.isfile(monitoringScript), "Invalid monitoring script %s" % (monitoringScript)
         assert isinstance(vmType, VMType), "Invalid VM type %s" % (vmType)
+        assert startTimeSecs is None or startTimeSecs > 0, "Invalid start time %s" % (startTimeSecs)
+        assert billingPolicy is not None, "Billing policty is None"
         
         self.monitoringScript = monitoringScript
         self.vmType = vmType
         self.htm = htm if htm is not None else HTMWrapper()
         self.lastMeasurement = None
+        
+        self.startTimeSecs = startTimeSecs if startTimeSecs is not None else currentTimeSecs()
+        self.billingPolicy = billingPolicy
                 
         # Start the monitoring
         remotePath = os.path.join("/home", self.userName, os.path.os.path.basename(self.monitoringScript))
@@ -107,6 +115,13 @@ class AppServer(BaseSSHWrapper):
             return m
         else:
             return None
+        
+    def nextBillingTime(self):
+        """
+        Returns the next billing time (in seconds).
+        @return: the next billing time (in seconds).
+        """
+        return self.billingPolicy.nextBillingTime(self.startTimeSecs, currentTimeSecs())
         
     def _measName(self):
         return "{0}: {1}".format(self.readableName, formatCurrTime(fmt='%d-%m-%Y %H:%M:%S'))
