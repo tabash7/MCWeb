@@ -24,9 +24,9 @@ public class JCloudsManager {
 
     public static void main(String[] args) throws RunNodesException, InterruptedException {
         // String providerId = "aws-ec2";
-        // String accesskeyid = "XXX";
-        // String secretkey = "XXX";
-        // String imageOwnerId = "XXX";
+        // String accesskeyid = "XX";
+        // String secretkey = "XX";
+        // String imageOwnerId = "XX";
         // String locationId = "ap-southeast-2a";
         // String imageId = "ap-southeast-2/ami-111b7e2b";
         // String hardwareId = org.jclouds.ec2.domain.InstanceType.T1_MICRO;
@@ -36,9 +36,9 @@ public class JCloudsManager {
         // String endPoint = null;
 
         // String providerId = "openstack-nova";
-        // String accesskeyid = "XXX"; //concat osTenantName and osUsername with a ':';
-        // String secretkey = "XXX";
-        // String imageOwnerId = "XXX";
+        // String accesskeyid = "XX"; //concat osTenantName and osUsername with a ':';
+        // String secretkey = "XX";
+        // String imageOwnerId = "XX";
         // String locationId = "Melbourne";
         // String imageId = locationId + "/" + "b40a036d-3911-4533-84f5-ad565b8376dc";
         // String hardwareId = "m1.small";
@@ -168,7 +168,7 @@ public class JCloudsManager {
         if(p == null || p.trim().equalsIgnoreCase("null") || p.trim().equalsIgnoreCase("none")) {
             return null;
         } else {
-            return null;
+            return p;
         }
     }
 }
