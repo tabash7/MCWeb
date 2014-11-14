@@ -269,7 +269,7 @@ public class VMManager {
     private static Method keyPairMethod(TemplateOptions options) throws NoSuchMethodException {
         Method keyPairMethod = null;
         for (Method m : options.getClass().getMethods()) {
-            if (m.getName().equals("keyPair") || m.getName().equals(KEY_PAIR_NAME) && m.getParameterCount() == 1 || m.getParameterTypes()[0].equals(String.class)) {
+            if (m.getName().equals("keyPair") || m.getName().equals("keyPairName") && m.getParameterCount() == 1 || m.getParameterTypes()[0].equals(String.class)) {
                 keyPairMethod = m;
                 break;
             }

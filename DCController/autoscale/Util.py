@@ -208,3 +208,6 @@ def scriptPath(scriptFile):
     assert scriptFile is not None, "Script file is None"
     return os.path.join(baseFolder(), "ShellScripts", scriptFile)
 
+def vmManagerJarPath():
+    return os.path.join(baseFolder(), "vmmanager", "target", "vmmanager-1.0-SNAPSHOT.jar")
+

@@ -8,7 +8,7 @@ class ClientFactory(object):
     """A factory for Clients."""
     
     def __init__(self, providerId, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName,
-                 keyPairName, groupName, mavenPrjPath, pemFile, monitoringScript, userName, runConfig):
+                 keyPairName, groupName, vmManagerJar, pemFile, monitoringScript, userName, runConfig):
         """
         Constr.
         @param providerId: see superclass.
@@ -20,14 +20,14 @@ class ClientFactory(object):
         @param securityGroupName: see superclass.
         @param keyPairName: see superclass.
         @param groupName: see superclass.
-        @param mavenPrjPath: see superclass.
+        @param vmManagerJar: see superclass.
         @param pemFile: see superclass.
         @param monitoringScript: see superclass.
         @param userName: see superclass.
         @param runConfig: see superclass.
         """
         super(ClientFactory, self).__init__(providerId, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName,
-                 keyPairName, groupName, mavenPrjPath, pemFile, monitoringScript, userName, runConfig)
+                 keyPairName, groupName, vmManagerJar, pemFile, monitoringScript, userName, runConfig)
         
     def createClient(self, address):
         """
