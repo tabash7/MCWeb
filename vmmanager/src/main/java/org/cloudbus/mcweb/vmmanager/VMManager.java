@@ -55,6 +55,14 @@ import com.google.common.base.Predicate;
  * As a result of the command execution, all affected VMs' addresses (i.e. provisioned or terminated) are
  * printed to the standard output on separate lines.
  * 
+ * <br/>
+ * <br/>
+ * 
+ * Example commands for OpenStack:
+ * <ul>
+ * <li>java -jar target/vmmanager-1.0-SNAPSHOT.jar provision -providerId openstack-nova -accessKeyId XX -secretKey XX -locationId Melbourne -imageId Melbourne/XX -hardwareId m1.small -secGroup AllOpen -keyPair XX -groupName test-xx -endPoint https://keystone.rc.nectar.org.au:5000/v2.0/ -numVMs 2</li>
+ * <li>java -jar target/vmmanager-1.0-SNAPSHOT.jar terminate -providerId openstack-nova -accessKeyId XX -secretKey XX -locationId Melbourne -endPoint https://keystone.rc.nectar.org.au:5000/v2.0/ -vmsAddresses "XX XX"</li>
+ * </ul> 
  */
 public class VMManager {
 
