@@ -25,8 +25,7 @@ public class AdmissionControllerResponse {
      *            - whether the user is eligible for the cloud site.
      * @param costEstimation
      *            - an estimation of the cost for serving the user. Can be NaN
-     *            the user is not eligible. Otherwise must non-negative. - the
-     *            cloud site, whose response this is. Must not be null.
+     *            the user is not eligible. Otherwise must non-negative.
      */
     public AdmissionControllerResponse(final String userToken, final boolean eligible, final double costEstimation) {
         Preconditions.checkNotNull(userToken);

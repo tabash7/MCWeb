@@ -21,7 +21,7 @@ public class AdmissionControllerService {
     @GET
     @Path(AC_SERVICE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public String test(@QueryParam(USER_TOKENS_PARAM) List<String> userTokens) {
+    public String service(@QueryParam(USER_TOKENS_PARAM) List<String> userTokens) {
         // userTokens[123, 456]
         List<AdmissionControllerResponse> responses = AdmissionController.getInstance().enquire(userTokens);
         return Jsons.toJson(responses.toArray(new AdmissionControllerResponse[responses.size()]), AdmissionControllerResponse[].class);

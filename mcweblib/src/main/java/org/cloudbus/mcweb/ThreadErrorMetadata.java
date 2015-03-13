@@ -21,9 +21,9 @@ public class ThreadErrorMetadata {
      * Constructor.
      * 
      * @param error
-     *            - the error, which occured. Must not be null.
+     *            - the error, which occurred. Must not be null.
      * @param thread
-     *            - the thread from which the error ocurred. Must not be null.
+     *            - the thread from which the error occurred. Must not be null.
      */
     public ThreadErrorMetadata(final Throwable error, final Thread thread) {
         Preconditions.checkNotNull(error);

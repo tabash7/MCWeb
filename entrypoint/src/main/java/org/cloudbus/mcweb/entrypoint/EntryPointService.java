@@ -15,7 +15,7 @@ public class EntryPointService {
     @GET
     @Path(EP_SERVICE_PATH)
     @Produces(MediaType.TEXT_PLAIN)
-    public String test(@PathParam(SOURCE_IP_PARAM) final String sourceIP, @PathParam(USER_TOKEN_PARAM) final String userToken) {
+    public String service(@PathParam(SOURCE_IP_PARAM) final String sourceIP, @PathParam(USER_TOKEN_PARAM) final String userToken) {
         EPUserRequest req = new EPUserRequest(sourceIP, userToken);
         EntryPoint.getInstance().request(req);
         CloudSite cs = req.selectCloudSite();

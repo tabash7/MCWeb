@@ -12,6 +12,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import com.google.common.base.Preconditions;
+
 /**
  * 
  *
@@ -23,6 +25,11 @@ public class Main {
 //        InputStream configStreamLoaded = args.length > 1 ? new FileInputStream(args[1]) : Main.class
 //                .getResourceAsStream("/config.properties");
 
+        Class<?> ruleClass = args.length > 0 ? Class.forName(args[0]) : PromiscuousAdmissionController.class;
+        Preconditions.checkArgument(IAdmissionControllerRule.class.isAssignableFrom(ruleClass), 
+                String.format("%s is not an instance of %s", ruleClass.getCanonicalName(), IAdmissionControllerRule.class.getSimpleName()));
+        IAdmissionControllerRule rule = (IAdmissionControllerRule) ruleClass.newInstance();
+        
         int jettyPort = args.length > 2 ? Integer.parseInt(args[2]) : Configs.DEFAULT_AC_PORT;
         Server jettyServer = new Server(jettyPort);
 
@@ -67,22 +74,7 @@ public class Main {
             // Farm fetches every 5 secs
             ServerFarm farm = new ServerFarm(Arrays.asList(vm1, vm2, vm3, vm4), 5000);
             
-            AdmissionController.getInstance().configure(new IAdmissionControllerRule() {
-                @Override
-                public void close() throws Exception {
-                    // pass
-                }
-                
-                @Override
-                public boolean isEligible(String userToken) {
-                    return true;
-                }
-                
-                @Override
-                public boolean backOff() {
-                    return false;
-                }
-            }, farm);
+            AdmissionController.getInstance().configure(rule, farm);
             //
             //
             ////////////////////////////////////////////////////////////////////////////////////////

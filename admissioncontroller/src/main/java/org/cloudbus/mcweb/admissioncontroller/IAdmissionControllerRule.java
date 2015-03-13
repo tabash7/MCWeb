@@ -18,7 +18,7 @@ public interface IAdmissionControllerRule extends AutoCloseable {
 
     /**
      * Returns, whether the admission controller should signal the entry point
-     * back-off from this cloud site.
+     * to back-off from this cloud site.
      * 
      * @return whether the admission controller should signal the entry point
      *         back-off.
