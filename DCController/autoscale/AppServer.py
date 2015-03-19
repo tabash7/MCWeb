@@ -60,7 +60,7 @@ class AppServer(BaseSSHWrapper):
         log.info("Starting the monitoring script on: %s" % (self.readableName))
         self.execRemoteCommand(command="bash {0} &> /dev/null".format(remotePath), asynch=True)
         
-        self.statFile=os.path.expanduser("~/%s-%s.txt" % (readableName, formatCurrTime("%d-%m-%Y-%H:%M:%S")) ) 
+        self.statFile=os.path.expanduser("~/%s-%s.txt" % (readableName, formatCurrTime("%d-%measurement-%Y-%H:%M:%S")) ) 
         log.info("Record measurements in: %s" %(self.statFile))
         self._header()
         self._numMeas = 0
@@ -93,7 +93,7 @@ class AppServer(BaseSSHWrapper):
             varianceActiveMem = data[6] + convertMem(1, fromCode="GB", toCode="KB") + data[9] * convertMem(1, fromCode="MB", toCode="KB")
             varianceIdlePerc = data[4] * 0.9
             
-            m = VMMeasurement(readableName = self._measName(),
+            measurement = VMMeasurement(readableName = self._measName(),
                              vmAddress=self.address,
                              serverTime = data[0],
                              cpuCapacityMhz = data[1], 
@@ -106,13 +106,13 @@ class AppServer(BaseSSHWrapper):
                              nicUtilPerc = data[8], 
                              numUsers = data[9])
             
-            m.considerMomentum(self.lastMeasurement, inputMomentum)
-            self.lastMeasurement = m
-            self.vmType.addMeasurement(m)
-            self.htm.train(m)
+            measurement.considerMomentum(self.lastMeasurement, inputMomentum)
+            self.lastMeasurement = measurement
+            self.vmType.addMeasurement(measurement)
+            self.htm.train(measurement)
             
-            self._line(m)
-            return m
+            self._line(measurement)
+            return measurement
         else:
             return None
         
@@ -124,7 +124,7 @@ class AppServer(BaseSSHWrapper):
         return self.billingPolicy.nextBillingTime(self.startTimeSecs, currentTimeSecs())
         
     def _measName(self):
-        return "{0}: {1}".format(self.readableName, formatCurrTime(fmt='%d-%m-%Y %H:%M:%S'))
+        return "{0}: {1}".format(self.readableName, formatCurrTime(fmt='%d-%measurement-%Y %H:%M:%S'))
     
     def _header(self, overwrite=True):
         with open(self.statFile, "a+" if not overwrite else "w") as f:
@@ -134,18 +134,18 @@ class AppServer(BaseSSHWrapper):
                 f.write("\n")
             f.write(txt+"\n")
     
-    def _line(self, m):
+    def _line(self, measurement):
         self._numMeas = self._numMeas + 1
         if self._numMeas % 50 == 0:
             self._header(overwrite=False)
             
         err = []
-        valid = m.isValid(err)
+        valid = measurement.isValid(err)
         txt = "%-10s; %-12s; %-8s; %-7d; %-10.5f; %-10.5f; %-10.5f; %-10.5f; %-10.5f; %-12.5f; %-12.5f; %-12.5f; %-8s; %-10s" \
-            % (formatCurrTime(fmt="%H:%M:%S"), self.vmType.readableName, self.readableName, m.numberOfUsers(),
-               m.getAnomaly(), m.cpuUtil(), m.ramUtil(), m.normaliseCpuUtil(), m.normaliseRAMUtil(),
-               m.getAvgPrevNormCPU(),
-               m.normaliseCpuCapacity(), m.normaliseRAMCapacity(), str(valid), str(err) )
+            % (formatCurrTime(fmt="%H:%M:%S"), self.vmType.readableName, self.readableName, measurement.numberOfUsers(),
+               measurement.getAnomaly(), measurement.cpuUtil(), measurement.ramUtil(), measurement.normaliseCpuUtil(), measurement.normaliseRAMUtil(),
+               measurement.getAvgPrevNormCPU(),
+               measurement.normaliseCpuCapacity(), measurement.normaliseRAMCapacity(), str(valid), str(err) )
         with open(self.statFile, "a+") as f:
             f.write(txt+"\n")
         

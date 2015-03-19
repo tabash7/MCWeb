@@ -25,7 +25,7 @@ public class Main {
 //        InputStream configStreamLoaded = args.length > 1 ? new FileInputStream(args[1]) : Main.class
 //                .getResourceAsStream("/config.properties");
 
-        Class<?> ruleClass = args.length > 0 ? Class.forName(args[0]) : PromiscuousAdmissionController.class;
+        Class<?> ruleClass = args.length > 0 ? Class.forName(args[0]) : PromiscuousAdmissionControllerRule.class;
         Preconditions.checkArgument(IAdmissionControllerRule.class.isAssignableFrom(ruleClass), 
                 String.format("%s is not an instance of %s", ruleClass.getCanonicalName(), IAdmissionControllerRule.class.getSimpleName()));
         IAdmissionControllerRule rule = (IAdmissionControllerRule) ruleClass.newInstance();

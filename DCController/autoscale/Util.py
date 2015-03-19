@@ -161,9 +161,9 @@ def printTest(trainingStatFile, fann, overwrite=False):
     with open(trainingStatFile, "a+" if not overwrite else "w") as f:
         f.write("\n\n=== === === === "+formatCurrTime()+" === === === === ===\n")
         if fann is not None:
-            for i in range(15, 200, 5):
-                result = fann.run(int(i))
-                txt = "%-10s: %.5d -> [CPU=%.5f, RAM=%.5f]" % (formatCurrTime(), i, result[0], result[1])
+            for iteration in range(15, 200, 5):
+                result = fann.run(int(iteration))
+                txt = "%-10s: %.5d -> [CPU=%.5f, RAM=%.5f]" % (formatCurrTime(), iteration, result[0], result[1])
                 print txt
                 f.write(txt + "\n")
 

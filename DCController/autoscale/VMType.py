@@ -40,21 +40,21 @@ class VMType(BaseAutoscalingClass):
         self.costPerTimeUnit = costPerTimeUnit
         self.measruements = collections.deque([], numMeasurements)
     
-    def addMeasurement(self, m):
+    def addMeasurement(self, measurement):
         """
         Adds a measurement for this VM type. If None - nothing is added.
-        @param m: The measurement. If not None, must be an instance of VMMeasurement. 
+        @param measurement: The measurement. If not None, must be an instance of VMMeasurement. 
         """
-        if m != None:
-            assert isinstance(m, VMMeasurement), "Invalid measurement %s" % (m)
-            self.measruements.append(m)
+        if measurement != None:
+            assert isinstance(measurement, VMMeasurement), "Invalid measurement %s" % (measurement)
+            self.measruements.append(measurement)
     
     def normalisedCPUCapacity(self):
         """
         Returns the normalised CPU capacity of the VM type - in the range [0,1].
         @return: the normalised CPU capacity of the VM type - in the range [0,1].
         """
-        normCPUCapacities = map(lambda m: m.normaliseCpuCapacity(), self.measruements)
+        normCPUCapacities = map(lambda measurement: measurement.normaliseCpuCapacity(), self.measruements)
         return float(sum(normCPUCapacities)) / float(len(normCPUCapacities)) if normCPUCapacities else -1
 
     def normalisedRAMCapacity(self):

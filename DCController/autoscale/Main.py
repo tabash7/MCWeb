@@ -13,9 +13,8 @@ from sys import maxint
 
 from autoscale.FANNWrapper import FANNWrapper
 from autoscale.VMType import VMType
-from workload.Workload import Workload
-from workload.ClientFactory import ClientFactory
 from autoscale.Util import convertMem, sigmoid, nextEpoch, getMk, getLrk, formatCurrTime, statHeader, statLine, printTest
+from autoscale import VMFactory
 
 
 log = logging.getLogger(__name__)
@@ -58,7 +57,8 @@ hardwareId = "t1.micro"
 securityGroupName = "CloudStone"
 keyPairName = "CloudStone"
 groupName = "cloudstone-as"  # Must be lower case
-mavenPrjPath = "/home/nikolay/Dropbox/CloudStoneSetupOnUbuntuAdvanced/AutoScaler/provisionvm/pom.xml"
+vmManagerJar = "vmmanager.jar"
+endPoint = "https://keystone.rc.nectar.org.au:5000/v2.0/"
 
 ##== Initialising common variables - addresses, access keys
 pemFile = "/home/nikolay/Dropbox/CloudStoneSetupOnUbuntuAdvanced/CloudStone.pem"
@@ -70,8 +70,8 @@ firstAppServerAddress = "ec2-54-253-205-116.ap-southeast-2.compute.amazonaws.com
 clientAddress = "ec2-54-79-149-247.ap-southeast-2.compute.amazonaws.com"
 
 ##== Factory for creating objects that manage VMs, Load Balancer and Clients
-factory = ClientFactory(providerId, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName, keyPairName,\
-                     groupName, mavenPrjPath, pemFile, monitoringScript, userName, runConfig)
+factory = VMFactory(providerId, endPoint, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName,
+                 keyPairName, groupName, vmManagerJar, pemFile, monitoringScript, userName, runConfig, billingPolicy)
 
 ##== VM types
 t1Micro = VMType(code="t1.micro", declaredCpuCapacity=0.5, declaredRAMCapacityKB=convertMem(0.615, "GB", "KB"), costPerTimeUnit=0.02)
@@ -95,13 +95,6 @@ fann = FANNWrapper(topology=(inputUnits, hiddenUnits, 2))
 #log.info("------------->" + nextAppServer.address)
 #serverFarm.addServers(nextAppServer)
 
-client = factory.createClient(address=clientAddress)
-workload = Workload(readableName = "Main Workload", client = client)
-for w in range(0, 94):
-    workload.addRun(loadScale=w*10 + 30, rampUp=60, steadyState=300 , rampDown=10)
-
-workload.start()
-
 time.sleep(90)
 
 inputMomentum = 0.0
@@ -110,7 +103,7 @@ inputMomentum = 0.0
 defSleepPeriod=5
 sleepPeriod=defSleepPeriod
 
-# USed to determine lrk
+# Used to determine lrk
 annomalies = collections.deque(maxlen=10)
 rmses = collections.deque(maxlen=10)
 
@@ -128,12 +121,14 @@ lastRAMUtils = collections.deque(maxlen=conseqTrig)
 # Min/Max users encountered so far
 minUsers, maxUsers = (maxint , 0)
 
-# Counts the number if ANN samples
+# Counts the number of ANN samples
 k=1
 
 initMeasurements = []
 
-for iteration in range(1, 50001):
+iteration = 0
+while True:
+    iteration = iteration + 1 
     if iteration % 50 == 0:
         printTest(trainingStatFile, fann)
     
@@ -141,14 +136,7 @@ for iteration in range(1, 50001):
     for server in serverFarm.servers:
         log.info("Receiving:[" + str(iteration) + "]")
         
-        if workload.getCurrentNumUsers() > 490:
-            raise StopIteration
-        
-        injectVariance = (workload.getCurrentNumUsers() >= 300)
-        if injectVariance:
-            log.info("Injecting variance ...")
-
-        measurement = server.fetchData(inputMomentum = inputMomentum, injectVariance = injectVariance)
+        measurement = server.fetchData(inputMomentum = inputMomentum)
         
         ank = measurement.anomaly if measurement is not None and iteration > 105 else 0
         cpu = measurement.normaliseCpuUtil() if measurement is not None else 0

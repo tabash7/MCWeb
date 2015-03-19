@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 class AutoScaler(BaseAutoscalingClass):
     """An autoscaling policy in a Data Centre Controller."""
     
-    def __init__(self, readableName, factory, loadBalancer, delta, tgrCPU, tgrRAM, n):
+    def __init__(self, readableName, factory, serverFarm, delta, tgrCPU, tgrRAM, n):
         """
         Constr.
         @param readableName: see superclass.
@@ -25,7 +25,7 @@ class AutoScaler(BaseAutoscalingClass):
         super(AutoScaler, self).__init__(readableName = readableName)
         self.factory = factory
         
-        self.loadBalancer = loadBalancer
+        self.loadBalancer = serverFarm
         
         self.delta = delta
         self.tgrCPU = tgrCPU
@@ -81,12 +81,12 @@ class AutoScaler(BaseAutoscalingClass):
                 nVmsToStop = nFree + self.n + 1
             #TODO listFreeVMs.sort(key=lambda x: x.billtime) 
             
-            for i in range(nVmsToStop):
-                billTime = listFreeVMs[i].nextBillingTime()
+            for iteration in range(nVmsToStop):
+                billTime = listFreeVMs[iteration].nextBillingTime()
                 tCur = currentTimeSecs
                 
                 if billTime - tCur < self.delta:
-                    #TODO terminate listFreeVMs[i]
+                    #TODO terminate listFreeVMs[iteration]
                     pass
                 else :
                     break

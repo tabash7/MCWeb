@@ -13,14 +13,14 @@ from autoscale.VMType import VMType
 log = logging.getLogger(__name__)
 
 class VMFactory(object):
-    """A factory for VMs, Clients and load balancer - i.e. app servers, load balancers etc."""
+    """A factory for VMs, Clients and load balancer - iteration.e. app servers, load balancers etc."""
     
     def __init__(self, providerId, endPoint, accesskeyid, secretkey, imageOwnerId, locationId, imageId, securityGroupName,
                  keyPairName, groupName, vmManagerJar, pemFile, monitoringScript, userName, runConfig, billingPolicy):
         """
         Constr.
         @param providerId: the id of the cloud provider. Must not be None. Must be valid as to JClouds.
-        @param endPoint: The end point of the cloud provider. May be None for public providers like AWS. Must be a valid end point..
+        @param endPoint: The end point of the cloud provider. May be None for public providers like AWS. Must be a valid end point.
         @param accesskeyid: the accesskey with the cloud provider. Must not be None. 
         @param secretkey: the secretkey with the cloud provider. Must not be None. 
         @param imageOwnerId: the imageOwnerId with the cloud provider. Must not be None for AWS.
@@ -104,8 +104,8 @@ class VMFactory(object):
         vmAddresses = self._launchVM(vmType.code, numVMs=numVMs)
         
         vms = []
-        for i in range(numVMs):
-            vms.append(AppServer(readableName=readableNames[i], address=vmAddresses[i], pemFile=self.pemFile, vmType=vmType, \
+        for iteration in range(numVMs):
+            vms.append(AppServer(readableName=readableNames[iteration], address=vmAddresses[iteration], pemFile=self.pemFile, vmType=vmType, \
                        monitoringScript=self.monitoringScript, userName=self.userName, htm=htm, billingPolicy=self.billingPolicy))
         
         log.info("Started VMs %s at addresses %s", readableNames, vmAddresses)
@@ -135,7 +135,7 @@ class VMFactory(object):
         assert numVMs == len(out), "Output should be just %s addresses, but it is:%s" % (numVMs, format(formatOutput(out)))
         return out
     
-    def createLoadBalancer(self, address):
+    def createServerFarm(self, address):
         """
         Creates a load balancer with the specified address.
         @param address: The address of the VM. Must not be null.

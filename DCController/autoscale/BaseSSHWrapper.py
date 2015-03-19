@@ -57,9 +57,9 @@ class BaseSSHWrapper(BaseAutoscalingClass):
         waitPeriod = 10
         attempts = 10
         # Try to connect but not more than attempts times
-        for i in range(attempts):
+        for iteration in range(attempts):
             # If not the first time - sleep a bit. Do not bombard the server with requests
-            if i > 0:
+            if iteration > 0:
                 time.sleep(waitPeriod)
             
             # Try establishing ssh client
