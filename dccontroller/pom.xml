@@ -16,6 +16,11 @@
 	</properties>
 
 	<dependencies>
+	    <dependency>
+        	<groupId>com.googlecode.fannj</groupId>
+        	<artifactId>fannj</artifactId>
+        	<version>0.6</version>
+    	</dependency>
 		<!-- Jetty, Jersey dependencies -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
