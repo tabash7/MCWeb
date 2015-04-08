@@ -17,6 +17,8 @@ public final class Util {
 		return (float)Math.sqrt(mseRun);
 	}
 		
-	
+	public static double simpleLog(double x){
+		return x >= 1? Math.log(x): x;
+	}
 	
 }

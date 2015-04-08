@@ -3,27 +3,33 @@ package org.cloudbus.mcweb.dccontroller;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Validate;
+import org.cloudbus.mcweb.util.Validator;
 
 import com.google.common.base.Preconditions;
+import com.googlecode.fannj.WindowsFunctionMapper;
+import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
+import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
+import com.sun.jna.win32.StdCallLibrary;
 
 public class FANNWrapper {
 
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(FANNWrapper.class.getCanonicalName());
 	
-	private static NativeLibrary fann;
 	static {
 		NativeLibrary fann = NativeLibrary.getInstance("fann");
 		Native.register(fann);
 	}
-
+	
 	private static String bufferFile =  Paths.get(System.getProperty("user.home"), "buffer-ann.txt").toString();
 
 	private int[] topology;
@@ -121,33 +127,77 @@ public class FANNWrapper {
     }
 	
     /**
+     * Runs the underlying neural network.
+     * @param n: Number of users. Must not be None. Must be non-negative integer.
+     * @return: The output layer as a colleciton.
+     */
+    private float[] run(int n) {
+    	Preconditions.checkArgument(n >= 0, String.format("Invalid n: %s", n));
+    	Pointer resultPtr = fann_run(ann, _convertInput(n));
+    	int numOutputNeurons = fann_get_num_output(ann);
+    	int topologyOutputSize = topology[topology.length - 1];
+    	Validator.check(numOutputNeurons == topologyOutputSize, 
+    			String.format("Topology and ANN output sizes do not match. Respective sizes - %d; %d", topologyOutputSize, numOutputNeurons));
+    	
+    	return resultPtr.getFloatArray(0, numOutputNeurons);
+    }
+
+    /**
      * Computes the RMSE for the given number of users and expected output.
      * @param n: Number of users. Must not be None. Must be non-negative integer. 
      * @param expOutput: The expected output from the NN. Must be of appropriate size. Must not be None.
      * @return: the RMSE for the given number of users and expected output.
      */
-	private float rmse(int n, float[] expOutput) {
+	public float rmse(int n, float[] expOutput) {
 		Preconditions.checkArgument(n > 0, String.format("Invalid n: %s", n));
 		Preconditions.checkNotNull(expOutput);
-		Preconditions.checkArgument(expOutput.length == topology[topology.length - 1], String.format("Invalid Expected Output: %s", Arrays.toString(expOutput)));
+		Preconditions.checkArgument(expOutput.length == topology[topology.length - 1], "Invalid Expected Output: %s", Arrays.toString(expOutput));
 		
         return Util.rmse(run(n), expOutput);
 	}
 
 	/**
-	 * Runs the underlying neural network.
-	 * @param n: Number of users. Must not be None. Must be non-negative integer.
-	 * @return: The output layer as a colleciton.
+	 * Reconfigures the neural network's momentum and learning_rate.
+	 * @param momentum: The new momentum. If None, the momentum is not changed. Must be in the range [0,1)
+	 * @param learning_rate: The new learning_rate. If None, the learning_rate is not changed. Must be in the range [0,1)
 	 */
-	private float[] run(int n) {
-		Preconditions.checkArgument(n >= 0, String.format("Invalid n: %s", n));
-        return fann_run(ann, _convertInput(n));
+	public void config(Float momentum, Float learning_rate) {
+		Preconditions.checkArgument(momentum == null || (0 <= momentum && momentum < 1), "Momentum %s, is invalid", momentum);
+		Preconditions.checkArgument(learning_rate == null || (0 <= learning_rate && learning_rate < 1), "Learning rate %s, is invalid", learning_rate);
+
+		if(momentum != null) {
+			this.momentum = momentum;
+			fann_set_learning_momentum(ann, this.momentum);
+		}
+		
+		if (learning_rate != null) {
+			this.learning_rate = learning_rate;
+			fann_set_learning_rate(ann, this.learning_rate);
+		}
+        
+		LOG.log(Level.INFO, "Momentum %.4f Learning Rate %.4f", new Object[]{ this.momentum, this.learning_rate });
+		
 	}
+	
 
 	private float[] _convertInput(int n) {
-		// TODO Auto-generated method stub
-		return null;
+		Preconditions.checkArgument(n > 0, "Number of users must be non-negative");
+		float[] result =  new float[topology[0]];
+		result[0] = n;
+		if(topology[0] > 1) {
+			result[1] = (float)Util.simpleLog(n);
+		}
+		if(topology[0] > 2) {
+			result[2] = (float)Util.simpleLog(Util.simpleLog(n));
+		}
+		
+		Validator.check(result.length == topology.length, String.format("Input size: %s, expected size:%s", result.length, topology[0] ));
+		Validator.check(!Arrays.asList(result).contains(0f), String.format("Input %s contains 0", Arrays.toString(result)));
+		
+		return result;
 	}
+	
+	
 
 	public static void main(String[] args) {
 		FANNWrapper fw = new FANNWrapper();
@@ -164,7 +214,7 @@ public class FANNWrapper {
 
 	protected static native float fann_get_MSE(Pointer ann);
 
-	protected static native float[] fann_run(Pointer ann, float[] input);
+	protected static native Pointer fann_run(Pointer ann, float[] input);
 
 	protected static native void fann_destroy(Pointer ann);
 
