@@ -1,0 +1,18 @@
+//created on: 17/04/2015
+package org.cloudbus.mcweb.rules
+
+//list any import classes here.
+import org.cloudbus.mcweb.rules.Message;
+
+
+
+//declare any global variables here
+
+
+
+rule "Hello World"
+when
+  message:Message (type == 'Hello')
+then
+  message.printMessage();
+end
