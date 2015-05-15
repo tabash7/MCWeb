@@ -61,7 +61,7 @@ class FANNWrapper(object):
         assert n is not None and n >= 0, "Invalid n: %s" % n
         assert expOutput is not None and len(expOutput) == self.topology[-1], "Invalid Expected Output: %s" % str(expOutput)
         assert trainTimes is not None and isinstance(trainTimes, int) and trainTimes > 0, "Invalid trainTimes: %s" % trainTimes
-        assert revert is not None and isinstance(trainTimes, bool), "Invalid revert param: %s" % revert
+        assert revert is not None and isinstance(revert, bool), "Invalid revert param: %s" % revert
         assert maxRMSE is None or maxRMSE > 0, "Invalid maxRMSE param: %s" % maxRMSE
         
         inp = self._convertInput(n)
