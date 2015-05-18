@@ -3,6 +3,10 @@ package org.cloudbus.mcweb.rules
 
 //list any import classes here.
 import org.cloudbus.mcweb.rules.Message;
+import org.cloudbus.mcweb.rules.Relation;
+import org.cloudbus.mcweb.rules.ITransitiveRelation;
+import org.cloudbus.mcweb.rules.IReflexiveRelation;
+
 import java.util.*;
 
 
@@ -14,26 +18,26 @@ declare Location
 end
 
 // Left hand side (LHS) domain contains Right hand side (RHS) domain 
-declare Contains
+/*declare Contains
    lhs : String
    rhs : String
-end
+end*/
 
 rule "Reflective Contains"
 when
 	Location($code : code)
 then 
-	insert(new Contains($code, $code));
+	insert(new Relation($code, $code, RelationType.REFLEXIVE));
 end
 
 rule "Transitive Contains"
 when
-	Contains($code1 : lhs, $code2 : rhs != $code1)
-	Contains(lhs == $code2, $code3 : rhs != $code2)
-	not(Contains(lhs == $code1, lhs == $code3)) // Do not insert existing relations
+	ITransitiveRelation($code1 : lhs, $code2 : rhs != $code1, $clazz : class)
+	ITransitiveRelation(lhs == $code2, $code3 : rhs != $code2, class == $clazz)
+	not(ITransitiveRelation(lhs == $code1, lhs == $code3, class == $clazz)) // Do not insert existing relations
 then 
 	//System.out.printf("%s = %s = %s\n", $code1, $code2, $code3);
-	insert(new Contains($code1, $code3));
+	insert(new Relations.Contains($code1, $code3));
 end
 // ========================= ======================== =========================
 
@@ -49,7 +53,7 @@ then
 	for(String c : codes) {
 		Location l = new Location(c);
 		insert(l);
-		insert (new Contains("EU", c));
+		insert (new Relations.Contains("EU", c));
 	}
 end
 
@@ -59,19 +63,28 @@ when
 then
 	Location euz = new Location("EUZ");
 	insert(euz);
-	insert(new Contains("EU", "EUZ"));
+	// EU contains all Eurozone countries.
+	insert(new Relations.Contains("EU", "EUZ"));
 	
 	String[] codes = new String[] {"AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "PT", "SK", "SI", "ES" };
 	for(String c : codes) {
 		Location l = new Location(c);
 		insert(l);
-		insert (new Contains("EUZ", c));
+		insert (new Relations.Contains("EUZ", c));
 	}
 end
 
 // ========================= ======================== =========================
 
+// ========================= DEBUG =========================
+rule "Print all contains"
+when
+	Relations.Contains($code1 : lhs, $code2 : rhs)
+then
+	System.out.println($code1 + " <- " + $code2);
+end
 
+// ========================= ======================== =========================
 
 
 
