@@ -3,57 +3,57 @@ package org.cloudbus.mcweb.rules
 
 //list any import classes here.
 import org.cloudbus.mcweb.rules.Message;
-import org.cloudbus.mcweb.rules.Relation;
-import org.cloudbus.mcweb.rules.ITransitiveRelation;
-import org.cloudbus.mcweb.rules.IReflexiveRelation;
+import org.cloudbus.mcweb.rules.relations.Relations;
+import org.cloudbus.mcweb.rules.relations.Relation;
+import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;
+import org.cloudbus.mcweb.rules.relations.IReflexiveRelation;
+import org.cloudbus.mcweb.rules.relations.ISymmetricRelation;
 
 import java.util.*;
 
 
 //declare any global variables here
 
-// ========================= Custom types =========================
-declare Location
-   code : String
-end
-
-// Left hand side (LHS) domain contains Right hand side (RHS) domain 
-/*declare Contains
-   lhs : String
-   rhs : String
-end*/
-
-rule "Reflective Contains"
+// ============================================================================================================
+// ================================================== Layer1 ==================================================
+rule "Reflexive Relations Rules"
 when
-	Location($code : code)
+	$relation : IReflexiveRelation($relationClass : getClass(), $elementType : elementType)
+	$obj : Object()
+	eval($relation.isApplicableTo($obj))
+	not(IReflexiveRelation(lhs == $obj, rhs == $obj, getClass() == $relationClass)) // Do not insert existing relations
 then 
-	insert(new Relation($code, $code, RelationType.REFLEXIVE));
+	System.out.printf("Reflective Rule \"%s\": %s %n", $obj, $relationClass.getSimpleName());
+	insert(Relations.newInstance($relationClass, $elementType, $obj, $obj));
 end
 
-rule "Transitive Contains"
+rule "Symmetric Relations Rules"
 when
-	ITransitiveRelation($code1 : lhs, $code2 : rhs != $code1, $clazz : class)
-	ITransitiveRelation(lhs == $code2, $code3 : rhs != $code2, class == $clazz)
-	not(ITransitiveRelation(lhs == $code1, lhs == $code3, class == $clazz)) // Do not insert existing relations
+	ISymmetricRelation($lhs1 : lhs, $rhs1 : rhs, $relationClass : getClass(), $elementType : elementType)
+	not(ISymmetricRelation(lhs == $rhs1, rhs == $lhs1, getClass() == $relationClass)) // Do not insert existing relations
 then 
-	//System.out.printf("%s = %s = %s\n", $code1, $code2, $code3);
-	insert(new Relations.Contains($code1, $code3));
+	insert(Relations.newInstance($relationClass, $elementType, $rhs1, $lhs1));
 end
-// ========================= ======================== =========================
 
-// ========================= Inject Facts =========================
+rule "Transitive Relations Rules"
+when
+	ITransitiveRelation($lhs1 : lhs, $rhs1 : rhs != $lhs1, $relationClass : getClass(), $elementType : elementType)
+	ITransitiveRelation(lhs == $rhs1, $rhs2 : rhs != $rhs1, getClass() == $relationClass, elementType == $elementType)
+	not(ITransitiveRelation(lhs == $lhs1, rhs == $rhs2, getClass() == $relationClass)) // Do not insert existing relations
+then 
+	System.out.printf("Transitive Rule \"%s\": %s <- %s <- %s \n", $relationClass.getSimpleName(), $lhs1, $rhs1, $rhs2);
+	insert(Relations.newInstance($relationClass, $elementType,  $lhs1, $rhs2));
+end
+
+// ============================================================================================================
+// ================================================== Layer2 ==================================================
 rule "European Union members"
 salience 100
 when
 then
-	Location eu = new Location("EU");
-	insert(eu);
-	
 	String[] codes = new String[] { "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GR", "HU", "HR", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PO", "PT", "RO", "SE", "SI", "SK" };
 	for(String c : codes) {
-		Location l = new Location(c);
-		insert(l);
-		insert (new Relations.Contains("EU", c));
+		insert (new ContainsJurisdiction("EU", c));
 	}
 end
 
@@ -61,32 +61,72 @@ rule "EuroZone members"
 salience 100
 when
 then
-	Location euz = new Location("EUZ");
-	insert(euz);
 	// EU contains all Eurozone countries.
-	insert(new Relations.Contains("EU", "EUZ"));
+	insert(new ContainsJurisdiction("EU", "EUZ"));
 	
 	String[] codes = new String[] {"AT", "BE", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "PT", "SK", "SI", "ES" };
 	for(String c : codes) {
-		Location l = new Location(c);
-		insert(l);
-		insert (new Relations.Contains("EUZ", c));
+		insert (new ContainsJurisdiction("EUZ", c));
 	}
 end
 
-// ========================= ======================== =========================
+rule "The European Economic Area (EEA) members"
+salience 100
+when
+then
+	// EEA contains all EU countries.
+	insert(new ContainsJurisdiction("EEA", "EU"));
 
-// ========================= DEBUG =========================
+	String[] codes = new String[] { "NO", "LI", "ISL" };
+	for(String c : codes) {
+		insert (new ContainsJurisdiction("EEA", c));
+	}
+end
+
+rule "USA members"
+salience 100
+when
+then
+	String[] codes = new String[] {"USA-AL",  "USA-AK",  "USA-AZ",  "USA-AR",  "USA-CA",  "USA-CO",  "USA-CT",  "USA-DE",  "USA-FL",  "USA-GA",  "USA-HI",  "USA-ID",  "USA-IL",  "USA-IN",  "USA-IA",  "USA-KS",  "USA-KY",  "USA-LA",  "USA-ME",  "USA-MD",  "USA-MA",  "USA-MI",  "USA-MN",  "USA-MS",  "USA-MO",  "USA-MT",  "USA-NE",  "USA-NV",  "USA-NH",  "USA-NJ",  "USA-NM",  "USA-NY",  "USA-NC",  "USA-ND",  "USA-OH",  "USA-OK",  "USA-OR",  "USA-PA",  "USA-RI",  "USA-SC",  "USA-SD",  "USA-TN",  "USA-TX",  "USA-UT",  "USA-VT",  "USA-VA",  "USA-WA",  "USA-WV",  "USA-WI",  "USA-WY" };
+	for(String c : codes) {
+		insert (new ContainsJurisdiction("USA", c));
+	}
+end
+
+//US-EU Safe Harbor
+rule "Adequate EU protection"
+salience 100
+when
+then
+	insert (new ContainsJurisdiction("EU-Adequate", "EEA"));
+	insert (new ContainsJurisdiction("EU-Adequate", "EU"));
+	insert (new ContainsJurisdiction("EU-Adequate", "CH"));
+	insert (new ContainsJurisdiction("EU-Adequate", "CA"));
+	insert (new ContainsJurisdiction("EU-Adequate", "AR"));
+	insert (new ContainsJurisdiction("EU-Adequate", "IL"));
+end
+
+
+//US-EU Safe Harbor
+rule "US-EU Safe Harbor"
+salience 100
+when
+then
+	insert (new ContainsJurisdiction("US-EU-Safe-Harbor", "USA"));
+	insert (new ContainsJurisdiction("US-EU-Safe-Harbor", "EU"));
+end
+
+
+// ============================================================================================================
+// ================================================== Layer2 ==================================================
 rule "Print all contains"
 when
-	Relations.Contains($code1 : lhs, $code2 : rhs)
+	ContainsJurisdiction($lhs1 : lhs, $rhs1 : rhs)
 then
-	System.out.println($code1 + " <- " + $code2);
+	System.out.println($lhs1 + " <- " + $rhs1);
 end
 
 // ========================= ======================== =========================
-
-
 
 
 rule "Hello World"
