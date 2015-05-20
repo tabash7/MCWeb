@@ -1,0 +1,48 @@
+//created on: 17/04/2015
+package org.cloudbus.mcweb.rules
+
+//list any import classes here.
+import org.cloudbus.mcweb.rules.Message;
+import org.cloudbus.mcweb.rules.relations.Relations;
+import org.cloudbus.mcweb.rules.relations.Relation;
+import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;
+import org.cloudbus.mcweb.rules.relations.IReflexiveRelation;
+import org.cloudbus.mcweb.rules.relations.ISymmetricRelation;
+import org.cloudbus.mcweb.rules.relations.ContainsJurisdiction;
+
+import java.util.*;
+
+
+//declare any global variables here
+
+// ============================================================================================================
+// ================================================== Layer1 ==================================================
+rule "Reflexive Relations Rules"
+when
+	$relation : IReflexiveRelation($relationClass : getClass(), $elementType : elementType)
+	$obj : Object()
+	eval($relation.isApplicableTo($obj))
+	not(IReflexiveRelation(lhs == $obj, rhs == $obj, getClass() == $relationClass)) // Do not insert existing relations
+then 
+	System.out.printf("Reflective Rule \"%s\": %s %n", $obj, $relationClass.getSimpleName());
+	insert(Relations.newInstance($relationClass, $elementType, $obj, $obj));
+end
+
+rule "Symmetric Relations Rules"
+when
+	ISymmetricRelation($lhs1 : lhs, $rhs1 : rhs, $relationClass : getClass(), $elementType : elementType)
+	not(ISymmetricRelation(lhs == $rhs1, rhs == $lhs1, getClass() == $relationClass)) // Do not insert existing relations
+then 
+	insert(Relations.newInstance($relationClass, $elementType, $rhs1, $lhs1));
+end
+
+rule "Transitive Relations Rules"
+when
+	ITransitiveRelation($lhs1 : lhs, $rhs1 : rhs != $lhs1, $relationClass : getClass(), $elementType : elementType)
+	ITransitiveRelation(lhs == $rhs1, $rhs2 : rhs != $rhs1, getClass() == $relationClass, elementType == $elementType)
+	not(ITransitiveRelation(lhs == $lhs1, rhs == $rhs2, getClass() == $relationClass)) // Do not insert existing relations
+then 
+	System.out.printf("Transitive Rule \"%s\": %s <- %s <- %s \n", $relationClass.getSimpleName(), $lhs1, $rhs1, $rhs2);
+	insert(Relations.newInstance($relationClass, $elementType,  $lhs1, $rhs2));
+end
+// ============================================================================================================

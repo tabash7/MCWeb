@@ -1,8 +1,5 @@
-package org.cloudbus.mcweb.rules;
+package org.cloudbus.mcweb.rules.relations;
 
-import org.cloudbus.mcweb.rules.relations.IReflexiveRelation;
-import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;
-import org.cloudbus.mcweb.rules.relations.Relation;
 
 /**
  * A reflexive and transitive relation expressing containment of jurisdictions

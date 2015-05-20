@@ -1,0 +1,39 @@
+//created on: 17/04/2015
+package org.cloudbus.mcweb.rules
+
+//list any import classes here.
+import org.cloudbus.mcweb.rules.Message;
+import org.cloudbus.mcweb.rules.relations.Relations;
+import org.cloudbus.mcweb.rules.relations.Relation;
+import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;
+import org.cloudbus.mcweb.rules.relations.IReflexiveRelation;
+import org.cloudbus.mcweb.rules.relations.ISymmetricRelation;
+import org.cloudbus.mcweb.rules.relations.ContainsJurisdiction;
+
+import java.util.*;
+
+
+//declare any global variables here
+
+// ============================================================================================================
+// ================================================== Layer3 ==================================================
+rule "EU citizens in EU countries"
+when
+	// $u : User($cs : citizenships)
+	// $dc : DataCentre($lc : locationCode)
+	// eval($cs.)
+then
+	System.out.println($lhs1 + " <- " + $rhs1);
+end
+
+// ============================================================================================================
+
+
+rule "Hello World"
+when
+  message:Message (type == "Hello")
+then
+  message.printMessage();
+end
+
+// ============================================================================================================

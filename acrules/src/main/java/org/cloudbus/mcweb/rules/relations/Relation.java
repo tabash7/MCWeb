@@ -82,4 +82,12 @@ public abstract class Relation<T> implements IRelation<T> {
         Assertions.assertThat(elementType.isInstance(rhs));
         this.elementType = elementType;
     }
+    
+    @Override
+    public String toString() {
+        return String.format("%s:[%s,%s]", 
+                getClass().getSimpleName(), 
+                getLhs(), 
+                getRhs());
+    }
 }
