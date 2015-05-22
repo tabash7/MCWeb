@@ -53,4 +53,9 @@ public class AdmissionDenied {
         Preconditions.checkNotNull(description);
         this.description = description;
     }
+    
+    @Override
+    public String toString() {
+        return String.format("Admission Denied: user Id:%s, Description : %s", userId, description);
+    }
 }

@@ -2,7 +2,6 @@
 package org.cloudbus.mcweb.rules
 
 //list any import classes here.
-import org.cloudbus.mcweb.rules.Message;
 import org.cloudbus.mcweb.rules.relations.Relations;
 import org.cloudbus.mcweb.rules.relations.Relation;
 import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;
@@ -24,7 +23,7 @@ when
 	eval($relation.isApplicableTo($obj))
 	not(IReflexiveRelation(lhs == $obj, rhs == $obj, getClass() == $relationClass)) // Do not insert existing relations
 then 
-	System.out.printf("Reflective Rule \"%s\": %s %n", $obj, $relationClass.getSimpleName());
+	//System.out.printf("Reflective Rule \"%s\": %s %n", $obj, $relationClass.getSimpleName());
 	insert(Relations.newInstance($relationClass, $elementType, $obj, $obj));
 end
 
@@ -42,7 +41,7 @@ when
 	ITransitiveRelation(lhs == $rhs1, $rhs2 : rhs != $rhs1, getClass() == $relationClass, elementType == $elementType)
 	not(ITransitiveRelation(lhs == $lhs1, rhs == $rhs2, getClass() == $relationClass)) // Do not insert existing relations
 then 
-	System.out.printf("Transitive Rule \"%s\": %s <- %s <- %s \n", $relationClass.getSimpleName(), $lhs1, $rhs1, $rhs2);
+	//System.out.printf("Transitive Rule \"%s\": %s <- %s <- %s \n", $relationClass.getSimpleName(), $lhs1, $rhs1, $rhs2);
 	insert(Relations.newInstance($relationClass, $elementType,  $lhs1, $rhs2));
 end
 // ============================================================================================================

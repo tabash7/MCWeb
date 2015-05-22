@@ -2,7 +2,6 @@
 package org.cloudbus.mcweb.rules
 
 //list any import classes here.
-import org.cloudbus.mcweb.rules.Message;
 import org.cloudbus.mcweb.rules.relations.Relations;
 import org.cloudbus.mcweb.rules.relations.Relation;
 import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;

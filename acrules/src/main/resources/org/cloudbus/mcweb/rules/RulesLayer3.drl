@@ -2,13 +2,13 @@
 package org.cloudbus.mcweb.rules
 
 //list any import classes here.
-import org.cloudbus.mcweb.rules.Message;
 import org.cloudbus.mcweb.rules.relations.Relations;
 import org.cloudbus.mcweb.rules.relations.Relation;
 import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;
 import org.cloudbus.mcweb.rules.relations.IReflexiveRelation;
 import org.cloudbus.mcweb.rules.relations.ISymmetricRelation;
 import org.cloudbus.mcweb.rules.relations.ContainsJurisdiction;
+import org.cloudbus.mcweb.rules.User;
 
 import java.util.*;
 
@@ -17,23 +17,34 @@ import java.util.*;
 
 // ============================================================================================================
 // ================================================== Layer3 ==================================================
-rule "EU citizens in EU countries"
+
+rule "EU citizens in EU-Adequate countries"
 when
-	// $u : User($cs : citizenships)
-	// $dc : DataCentre($lc : locationCode)
-	// eval($cs.)
+	User($id: userId, $countries : citizenships)
+	ContainsJurisdiction(lhs == "EU", rhs memberOf $countries)
+	DataCentre($lc : locationCode)
+	not(ContainsJurisdiction(lhs == "EU-Adequate", rhs == $lc))
 then
-	System.out.println($lhs1 + " <- " + $rhs1);
+	insert (new AdmissionDenied($id, String.format("Admission denied to \"%s\", Datacentre is in \"%s\", which is not a valid EU location", $id, $lc)));
 end
+
+rule "US governnment officials in US only"
+when
+	User($id: userId, tags contains "US-GOV")
+	DataCentre($lc : locationCode)
+	not(ContainsJurisdiction(lhs == "USA", rhs == $lc))
+then
+	insert (new AdmissionDenied($id, String.format("Admission denied to \"%s\", Datacentre is in \"%s\", which is not in the USA", $id, $lc)));
+end
+
+rule "Users with credit cards in PCI DSS compliant DCs"
+when
+	User($id: userId, tags contains "PCI-DSS")
+	DataCentre(tags not contains "PCI-DSS")
+then
+	insert (new AdmissionDenied($id, String.format("Admission denied to \"%s\", Datacentre is not PCI-DSS compliant", $id)));
+end
+
 
 // ============================================================================================================
 
-
-rule "Hello World"
-when
-  message:Message (type == "Hello")
-then
-  message.printMessage();
-end
-
-// ============================================================================================================
