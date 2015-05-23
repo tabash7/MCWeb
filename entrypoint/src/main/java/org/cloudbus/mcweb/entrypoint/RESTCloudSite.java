@@ -18,7 +18,6 @@ import static org.cloudbus.mcweb.util.Configs.*;
 import static org.cloudbus.mcweb.util.Closeables.*;
 
 
-
 /**
  * A cloudsite, which uses REST web services to communicate with the admission
  * controller.
@@ -30,7 +29,6 @@ public class RESTCloudSite extends CloudSite {
     
     private final Client client;
     private final WebTarget webTarget;
-    
     
     /**
      * Creates cloud sites which the REST service of the admission controllers.
@@ -55,7 +53,7 @@ public class RESTCloudSite extends CloudSite {
         Preconditions.checkNotNull(requests);
         Preconditions.checkArgument(!requests.isEmpty());
         
-        List<String> userTokens = requests.stream().map(r -> r.getUserToken()).collect(Collectors.toList());
+        List<String> userTokens = requests.stream().map(EPUserRequest::getUserToken).collect(Collectors.toList());
         String responseJson = webTarget.queryParam(USER_TOKENS_PARAM, userTokens.toArray()).request(MediaType.APPLICATION_JSON).get(String.class);
         AdmissionControllerResponse[] responses = Jsons.fromJson(responseJson, AdmissionControllerResponse[].class);
 
@@ -72,6 +70,6 @@ public class RESTCloudSite extends CloudSite {
     
     @Override
     public void close() throws Exception {
-        closeAll(() -> client.close());
+        closeAll(client::close);
     }
 }

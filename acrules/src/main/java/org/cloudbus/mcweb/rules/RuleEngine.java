@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.assertj.core.util.Preconditions;
-import org.cloudbus.mcweb.rules.relations.ContainsJurisdiction;
 import org.drools.compiler.compiler.DroolsError;
 import org.drools.compiler.compiler.DroolsParserException;
 import org.drools.compiler.compiler.PackageBuilder;
@@ -40,32 +39,6 @@ import org.drools.core.event.WorkingMemoryEventListener;
 public class RuleEngine {
     
     private static Logger LOG = Logger.getLogger(RuleEngine.class.getCanonicalName());
-    
-    public static void main123(String[] args) throws DroolsParserException, IOException {
-     
-        RuleBase ruleBase = createRuleBase(RuleEngine.class.getResourceAsStream("/org/cloudbus/mcweb/rules/RulesLayer1.drl"),
-                RuleEngine.class.getResourceAsStream("/org/cloudbus/mcweb/rules/RulesLayer2.drl"),
-                RuleEngine.class.getResourceAsStream("/org/cloudbus/mcweb/rules/RulesLayer3.drl"));
-        WorkingMemory workingMemory = initializeStatefulWorkingMemory(ruleBase);
-        
-        //workingMemory.
-        
-        System.out.printf("%n%n<-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -->%n%n");
-        List<Object> contains = fireAllRulesAndRevert(workingMemory, o -> o instanceof ContainsJurisdiction);
-        contains.stream().forEach(e -> System.out.println(e));
-
-        System.out.printf("%n%n<-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -->%n%n");
-        FactHandle euzKMY = workingMemory.insert(new ContainsJurisdiction("EUZ", "KMYanko2"));
-        contains = fireAllRulesAndRevert(workingMemory, o -> o instanceof ContainsJurisdiction);
-        contains.stream().forEach(e -> System.out.println(e));
-        
-        System.out.printf("%n%n<-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -->%n%n");
-        workingMemory.retract(euzKMY);
-        contains = fireAllRulesAndRevert(workingMemory, o -> o instanceof ContainsJurisdiction);
-        contains.stream().forEach(e -> System.out.println(e));
-
-        System.out.printf("%n%n<-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -->%n%n");
-    }
     
     private static WorkingMemory workingMemory;
     private static final ObjectFilter ADMISSION_DENIED_FILTER = o -> o instanceof AdmissionDenied;
@@ -106,6 +79,17 @@ public class RuleEngine {
     public static Set<String> determineUsersApplicability(final DataCentre dc, final User ... users){
         Collection<AdmissionDenied> denials = computeAdmissionDenials(dc, users);
         return denials.stream().map(ad -> ad.getUserId()).collect(Collectors.toSet());
+    }
+
+    /**
+     * Disposes the allocated resources (rules, facts etc.). 
+     * Subsequent method calls will start allocating the resources again.
+     */
+    public static synchronized void dispose() {
+        if(workingMemory != null) {
+            workingMemory.dispose();
+            workingMemory = null;
+        }
     }
     
     /**
@@ -155,7 +139,7 @@ public class RuleEngine {
             // Add all facts and run the rule engine
             for (Object fact : facts) {
                 LOG.info("Adding fact " + fact.toString() + " to the rule set.");
-                handlesToRemove.add(workingMemory.insert(fact, false));
+                handlesToRemove.add(workingMemory.insert(fact));
             }
             
             // Add the listener and run all rules

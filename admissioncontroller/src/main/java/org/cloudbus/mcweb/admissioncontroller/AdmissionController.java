@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.cloudbus.mcweb.AdmissionControllerResponse;
 import org.cloudbus.mcweb.ServerFarm;
+import org.cloudbus.mcweb.rules.DataCentre;
 
 import com.google.common.base.Preconditions;
 
@@ -24,9 +25,12 @@ public class AdmissionController implements AutoCloseable {
     
     /** Application specific eligibility and performance rules. */
     private IAdmissionControllerRule rule;
+    /** Application specific eligibility and performance rules. */
+    private IUserResolver userResolver;
     /** The server farm. */
     private ServerFarm serverFarm;
-    
+    /** The data centre. */
+    private DataCentre dataCentre;
     
     /** Singleton instance. */
     private static final AdmissionController instance = new AdmissionController();
@@ -41,11 +45,15 @@ public class AdmissionController implements AutoCloseable {
 
     /**
      * Configures this admission controller.
+     * @param dataCentre - the data centre to admit in. Must not be null
      * @param rule - the application specific rules. Must not be null.
+     * @param userResolver - the resolver, used to match user ids to user metadata. Must not be null.
      * @param serverFarm - the server farm. Must not be null.
      */
-    public synchronized void configure(final IAdmissionControllerRule rule, final ServerFarm serverFarm) {
+    public synchronized void configure(DataCentre dataCentre, final IAdmissionControllerRule rule, final IUserResolver userResolver, final ServerFarm serverFarm) {
+        Preconditions.checkNotNull(dataCentre);
         Preconditions.checkNotNull(rule);
+        Preconditions.checkNotNull(userResolver);
         Preconditions.checkNotNull(serverFarm);
         
         synchronized (instance) {
@@ -58,7 +66,9 @@ public class AdmissionController implements AutoCloseable {
             
             LOG.info("Configure the admission controller.");
             this.rule = rule;
+            this.userResolver = userResolver;
             this.serverFarm = serverFarm;
+            this.dataCentre = dataCentre;
         }
     }
 
@@ -74,7 +84,7 @@ public class AdmissionController implements AutoCloseable {
 
     private AdmissionControllerResponse respond(final String userToken) {
         Preconditions.checkNotNull(userToken);
-        boolean eligible = this.rule.isEligible(userToken);
+        boolean eligible = this.rule.isEligible(userResolver.resolve(userToken), dataCentre);
         double costEstimation = Double.NaN;
         if(eligible) {
             costEstimation = rule.backOff() ? Double.MAX_VALUE : this.serverFarm.costPerUser();

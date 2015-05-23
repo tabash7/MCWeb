@@ -41,9 +41,9 @@ public final class Configs {
             "{" + USER_TOKEN_PARAM + "}";
 
     public static final int DEFAULT_AC_PORT = DEFAULT_EP_PORT + 1;
-    public static final String AC_SERVICE_PATH = SERVICE_PATH;
     public static final String AC_PATH = "/admission-control";
     public static final String USER_TOKENS_PARAM = "userTokens";
+    public static final String AC_SERVICE_PATH = SERVICE_PATH;
     
     /* --- CSV constants --- */
     /** The separator in the csv file. */

@@ -1,5 +1,10 @@
 package org.cloudbus.mcweb.admissioncontroller;
 
+import org.cloudbus.mcweb.rules.DataCentre;
+import org.cloudbus.mcweb.rules.User;
+
+import com.google.common.base.Preconditions;
+
 /**
  * 
  * An admission control rule, which accepts any user and never asks for a back-off. 
@@ -15,7 +20,9 @@ public class PromiscuousAdmissionControllerRule implements IAdmissionControllerR
     }
     
     @Override
-    public boolean isEligible(String userToken) {
+    public boolean isEligible(User user, DataCentre dataCentre) {
+        Preconditions.checkNotNull(user);
+        Preconditions.checkNotNull(dataCentre);
         return true;
     }
     

@@ -17,6 +17,7 @@ import java.util.*;
 // ============================================================================================================
 // ================================================== Layer1 ==================================================
 rule "Reflexive Relations Rules"
+salience 200
 when
 	$relation : IReflexiveRelation($relationClass : getClass(), $elementType : elementType)
 	$obj : Object()
@@ -28,6 +29,7 @@ then
 end
 
 rule "Symmetric Relations Rules"
+salience 200
 when
 	ISymmetricRelation($lhs1 : lhs, $rhs1 : rhs, $relationClass : getClass(), $elementType : elementType)
 	not(ISymmetricRelation(lhs == $rhs1, rhs == $lhs1, getClass() == $relationClass)) // Do not insert existing relations
@@ -36,6 +38,7 @@ then
 end
 
 rule "Transitive Relations Rules"
+salience 200
 when
 	ITransitiveRelation($lhs1 : lhs, $rhs1 : rhs != $lhs1, $relationClass : getClass(), $elementType : elementType)
 	ITransitiveRelation(lhs == $rhs1, $rhs2 : rhs != $rhs1, getClass() == $relationClass, elementType == $elementType)

@@ -23,7 +23,7 @@ public class AggregatedUncaghtExceptionHandler implements Thread.UncaughtExcepti
     private final List<ThreadErrorMetadata> errors = new ArrayList<>();
 
     @Override
-    public void uncaughtException(final Thread t, final Throwable e) {
+    public synchronized void uncaughtException(final Thread t, final Throwable e) {
         Preconditions.checkNotNull(e);
         Preconditions.checkNotNull(t);
         
@@ -38,7 +38,7 @@ public class AggregatedUncaghtExceptionHandler implements Thread.UncaughtExcepti
      * 
      * @return the list of errors, that occurred in the associated threads.
      */
-    public List<ThreadErrorMetadata> getErrors() {
+    public synchronized List<ThreadErrorMetadata> getErrors() {
         synchronized (errors) {
             return Collections.unmodifiableList(errors);
         }
@@ -46,13 +46,13 @@ public class AggregatedUncaghtExceptionHandler implements Thread.UncaughtExcepti
     
     /**
      * Throws the first error, if there is such. Otherwise - does not do
-     * anythin.
+     * anything.
      * 
      * @throws Throwable
-     *             - when at least one of the assciated threads resulted in an
+     *             - when at least one of the associated threads resulted in an
      *             unhandled error.
      */
-    public void throwFirst() throws Throwable {
+    public synchronized void throwFirst() throws Throwable {
         synchronized (errors) {
             if (!errors.isEmpty()) {
                 throw errors.get(0).getError();

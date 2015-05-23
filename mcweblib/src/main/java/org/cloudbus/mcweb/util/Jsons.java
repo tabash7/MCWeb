@@ -1,5 +1,7 @@
 package org.cloudbus.mcweb.util;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
 import com.google.common.base.Preconditions;
@@ -111,5 +113,20 @@ public class Jsons {
         Preconditions.checkNotNull(json);
         Preconditions.checkNotNull(clazz);
         return GSON.fromJson(json, clazz);
+    }
+
+    /**
+     * Loads an object from Json.
+     * 
+     * @param json
+     *            - the json input stream. Must not be null.
+     * @param class
+     *            - the expected type of the loaded object. Must not be null.
+     * @return the loaded object.
+     */
+    public static <T> T fromJson(final InputStream json, final Class<T> clazz) {
+        Preconditions.checkNotNull(json);
+        Preconditions.checkNotNull(clazz);
+        return GSON.fromJson(new InputStreamReader(json), clazz);
     }
 }

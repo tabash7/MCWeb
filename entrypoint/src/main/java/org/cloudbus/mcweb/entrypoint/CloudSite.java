@@ -23,11 +23,10 @@ public class CloudSite implements AutoCloseable {
     private static final Logger LOG = Logger.getLogger(CloudSite.class.getCanonicalName());
 
     /**
-     * Creates default cloud sites, which accept every user with 0 cost. The
-     * created cloud sites do not communicate with the actual clouds.
+     * Creates default cloud sites, which accept every user with 0 cost. 
+     * The created cloud sites do not communicate with the actual clouds.
      */
     public static final Function<String[], CloudSite> FACTORY = s -> new CloudSite(s[0], s[1], s[2]);
-    
     
     /** A human readable name of the cloud site. */
     private final String name;

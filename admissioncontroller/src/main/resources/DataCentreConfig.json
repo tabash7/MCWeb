@@ -1,0 +1,8 @@
+{
+  "locationCode": "BG",
+  "providerCode": "AWS",
+  "tags": [
+    "PCI-DSS",
+    "TAG"
+  ]
+}

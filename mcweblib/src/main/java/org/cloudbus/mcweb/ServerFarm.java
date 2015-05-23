@@ -25,6 +25,9 @@ public class ServerFarm implements AutoCloseable {
     /** Logger. */
     private static final Logger LOG = Logger.getLogger(ServerFarm.class.getCanonicalName());
     
+    /** A dummy server farm with not servers. */
+    public static final ServerFarm DUMMY_FARM = new ServerFarm(Collections.emptyList(), 0);
+    
     /** VMs indexed by the addresses. */
     private final LinkedHashMap<String, VirtualMachine> servers;
     /** The last cost estimation for serving a user per minute. */
@@ -53,12 +56,12 @@ public class ServerFarm implements AutoCloseable {
      *            None of the elements must be null.
      * @param periodBetweenVMUtilFetching
      *            - period between VM utilisation fetching in milliseconds. Must
-     *            be positive.
+     *            be non-negative. If 0, then the vm status will not be fetched.
      */
     public ServerFarm(final List<VirtualMachine> servers, final long periodBetweenVMUtilFetching) {
         Preconditions.checkNotNull(servers);
-        Preconditions.checkArgument(!servers.isEmpty());
-        Preconditions.checkArgument(periodBetweenVMUtilFetching > 0);
+        //Preconditions.checkArgument(!servers.isEmpty());
+        Preconditions.checkArgument(periodBetweenVMUtilFetching >= 0);
 
         // Index all servers by their address
         this.servers = new LinkedHashMap<>();
@@ -72,7 +75,9 @@ public class ServerFarm implements AutoCloseable {
         this.periodBetweenVMUtilFetching = periodBetweenVMUtilFetching;
         
         // Start the background thread, fetching VMs utilisations
-        bacthRequestTimer.schedule(bacthRequestTimerTask, 10, this.periodBetweenVMUtilFetching);
+        if(this.periodBetweenVMUtilFetching > 0) {
+            bacthRequestTimer.schedule(bacthRequestTimerTask, 10, this.periodBetweenVMUtilFetching);
+        }
     }
 
     /**
