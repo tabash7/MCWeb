@@ -9,6 +9,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import static org.cloudbus.mcweb.util.Configs.*;
+
 /**
  * Starts the entry point web service.
  * 
@@ -51,6 +53,8 @@ public class Main {
             jettyServer.setHandler(context);
             ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/*");
             jerseyServlet.setInitOrder(0);
+            ServletHolder webServlet = context.addServlet(EntryPointRedirectServelet.class, EP_PATH + "/redirect/*");
+            webServlet.setInitOrder(0);
 
             // Tells the Jersey Servlet which REST service/class to load.
             jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",
