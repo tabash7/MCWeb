@@ -252,7 +252,7 @@ public class EntryPointTest {
         }
         
         // If any thread has failed - raise the first exception
-       errHandler.throwFirst();
+        errHandler.throwFirst();
 
         // Assert properties are set properly
         for (int i = 0; i < reqs.size(); i++) {
@@ -266,25 +266,25 @@ public class EntryPointTest {
             double latency3 = (double) ((i + 1) * 30 % 50);
             double latency4 = (double) ((i + 1) * 40 % 50);
 
-            boolean unresposnive1 = cloudsiteDelays != null && cloudsiteDelays.get(0) > 6000;
-            boolean unresposnive2 = cloudsiteDelays != null && cloudsiteDelays.get(1) > 6000;
-            boolean unresposnive3 = cloudsiteDelays != null && cloudsiteDelays.get(2) > 6000;
-            boolean unresposnive4 = cloudsiteDelays != null && cloudsiteDelays.get(3) > 6000;
+            boolean unresponsive1 = cloudsiteDelays != null && cloudsiteDelays.get(0) > 6000;
+            boolean unresponsive2 = cloudsiteDelays != null && cloudsiteDelays.get(1) > 6000;
+            boolean unresponsive3 = cloudsiteDelays != null && cloudsiteDelays.get(2) > 6000;
+            boolean unresponsive4 = cloudsiteDelays != null && cloudsiteDelays.get(3) > 6000;
 
             if (i % 4 == 0) {
                 assertNull(req.selectCloudSite());
             } else if (i % 4 == 1) {
-                if (unresposnive1) {
+                if (unresponsive1) {
                     assertNull(req.selectCloudSite());
                 } else {
                     assertEquals("AWS1", req.selectCloudSite().getName());
                 }
             } else if (i % 4 == 2) {
-                if (unresposnive2 && unresposnive3) {
+                if (unresponsive2 && unresponsive3) {
                     assertNull(req.selectCloudSite());
-                } else if (unresposnive3) {
+                } else if (unresponsive3) {
                     assertEquals("AWS2", req.selectCloudSite().getName());
-                } else if (unresposnive2) {
+                } else if (unresponsive2) {
                     assertEquals("AWS3", req.selectCloudSite().getName());
                 } else if (latency2 >= 40 || latency3 > 40) {
                     assertEquals(latency2 < latency3 ? "AWS2" : "AWS3", req.selectCloudSite().getName());
@@ -292,17 +292,17 @@ public class EntryPointTest {
                     assertEquals(costs.get(1) < costs.get(2) ? "AWS2" : "AWS3", req.selectCloudSite().getName());
                 }
             } else if (i % 4 == 3) {
-                if (unresposnive2 && unresposnive4) {
+                if (unresponsive2 && unresponsive4) {
                     assertNull(req.selectCloudSite());
-                } else if (unresposnive4) {
+                } else if (unresponsive4) {
                     assertEquals("AWS2", req.selectCloudSite().getName());
-                } else if (unresposnive2) {
+                } else if (unresponsive2) {
                     assertEquals("AWS4", req.selectCloudSite().getName());
                 } else if (latency2 >= 40 || latency4 > 40) {
-                    assertEquals(unresposnive4 || latency2 < latency4 ? "AWS2" : "AWS4", req.selectCloudSite()
+                    assertEquals(unresponsive4 || latency2 < latency4 ? "AWS2" : "AWS4", req.selectCloudSite()
                             .getName());
                 } else {
-                    assertEquals(unresposnive4 || costs.get(1) < costs.get(3) ? "AWS2" : "AWS4", req.selectCloudSite()
+                    assertEquals(unresponsive4 || costs.get(1) < costs.get(3) ? "AWS2" : "AWS4", req.selectCloudSite()
                             .getName());
                 }
             }

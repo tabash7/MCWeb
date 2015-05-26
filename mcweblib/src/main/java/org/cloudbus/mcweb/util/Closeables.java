@@ -94,7 +94,7 @@ public class Closeables {
     public static Closeable notifyAllCloseable(final Object lock) {
         return maybeCloseable(lock, () -> {
             synchronized (lock) {
-                lock.notify();
+                lock.notifyAll();
             }
         });
     }

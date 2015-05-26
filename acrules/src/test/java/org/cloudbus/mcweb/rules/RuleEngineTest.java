@@ -25,7 +25,7 @@ public class RuleEngineTest {
     @SuppressWarnings("unchecked")
     public void testEUUserInUS() {
         User euUser = new User("EU-User", new HashSet<String>(Arrays.asList("BG")), (Set<String>) Collections.EMPTY_SET);
-        DataCentre usDC = new DataCentre("US", "AWS", (Set<String>) Collections.EMPTY_SET);
+        DataCentre usDC = new DataCentre("US", "AWS", (Set<String>) Collections.EMPTY_SET, 1);
 
         Collection<AdmissionDenied> admissionDenials = RuleEngine.computeAdmissionDenials(usDC, euUser);
 
@@ -38,7 +38,7 @@ public class RuleEngineTest {
     @SuppressWarnings("unchecked")
     public void testEUUserInUSState() {
         User euUser = new User("EU-User", new HashSet<String>(Arrays.asList("BG")), (Set<String>) Collections.EMPTY_SET);
-        DataCentre usDC = new DataCentre("USA-AZ", "AWS", (Set<String>) Collections.EMPTY_SET);
+        DataCentre usDC = new DataCentre("USA-AZ", "AWS", (Set<String>) Collections.EMPTY_SET, 1);
 
         Collection<AdmissionDenied> admissionDenials = RuleEngine.computeAdmissionDenials(usDC, euUser);
 
@@ -51,7 +51,7 @@ public class RuleEngineTest {
     @SuppressWarnings("unchecked")
     public void testEUUserInEU() {
         User euUser = new User("EU-User", new HashSet<String>(Arrays.asList("BG")), (Set<String>) Collections.EMPTY_SET);
-        DataCentre euDC = new DataCentre("GB", "AWS", (Set<String>) Collections.EMPTY_SET);
+        DataCentre euDC = new DataCentre("GB", "AWS", (Set<String>) Collections.EMPTY_SET, 1);
 
         Collection<AdmissionDenied> admissionDenials = RuleEngine.computeAdmissionDenials(euDC, euUser);
 
@@ -63,7 +63,7 @@ public class RuleEngineTest {
     @SuppressWarnings("unchecked")
     public void testPCIDoNotMatch() {
         User euUser = new User("EU-User", new HashSet<String>(Arrays.asList("BG")), new HashSet<String>(Arrays.asList("PCI-DSS")));
-        DataCentre euDC = new DataCentre("GB", "AWS", (Set<String>) Collections.EMPTY_SET);
+        DataCentre euDC = new DataCentre("GB", "AWS", (Set<String>) Collections.EMPTY_SET, 1);
 
         Collection<AdmissionDenied> admissionDenials = RuleEngine.computeAdmissionDenials(euDC, euUser);
 
@@ -75,7 +75,7 @@ public class RuleEngineTest {
     @Test
     public void testPCIMatch() {
         User euUser = new User("EU-User", new HashSet<String>(Arrays.asList("BG")), new HashSet<String>(Arrays.asList("PCI-DSS")));
-        DataCentre euDC = new DataCentre("GB", "AWS", new HashSet<String>(Arrays.asList("PCI-DSS")));
+        DataCentre euDC = new DataCentre("GB", "AWS", new HashSet<String>(Arrays.asList("PCI-DSS")), 1);
         
         Collection<AdmissionDenied> admissionDenials = RuleEngine.computeAdmissionDenials(euDC, euUser);
 
@@ -95,7 +95,7 @@ public class RuleEngineTest {
         // Will be accepted
         User usUser2 = new User("US-User2", new HashSet<String>(Arrays.asList("USA-WA")), (Set<String>) Collections.EMPTY_SET);
         
-        DataCentre usDC = new DataCentre("USA", "AWS", (Set<String>) Collections.EMPTY_SET);
+        DataCentre usDC = new DataCentre("USA", "AWS", (Set<String>) Collections.EMPTY_SET, 1);
         
         Collection<AdmissionDenied> admissionDenials = RuleEngine.computeAdmissionDenials(usDC, euUser1, usUser1, usUser2);
         

@@ -17,6 +17,7 @@ public class DataCentre {
     private String locationCode;
     private String providerCode;
     private Set<String> tags = new HashSet<>();
+    private double cost;
 
     /**
      * Ctor.
@@ -24,10 +25,11 @@ public class DataCentre {
      * @param providerCode - the provider code. Must not be null.
      * @param tags - the tags code. Must not be null.
      */
-    public DataCentre(final String locationCode, final String providerCode, final Set<String> tags) {
+    public DataCentre(final String locationCode, final String providerCode, final Set<String> tags, final double cost) {
         setLocationCode(locationCode);
         setProviderCode(providerCode);
         setTags(tags);
+        setCost(cost);
     }
 
     /**
@@ -81,10 +83,28 @@ public class DataCentre {
         this.tags = tags;
     }
     
+    /**
+     * Returns the cost.
+     * @return the cost.
+     */
+    public double getCost() {
+        return cost;
+    }
+
+    /**
+     * Sets the cost
+     * @param cost - the cost to set. Must be positive.
+     */
+    public void setCost(double cost) {
+        com.google.common.base.Preconditions.checkArgument(cost > 0);
+        this.cost = cost;
+    }
+
     @Override
     public String toString() {
-        return String.format("DC: locationCode=%s, providerCode=%s, tags=%s", locationCode,
+        return String.format("DC: locationCode=%s, providerCode=%s, tags=%s, cost=%.2f", locationCode,
                 providerCode,
-                Arrays.toString(tags.toArray()));
+                Arrays.toString(tags.toArray()),
+                cost);
     }
 }

@@ -87,7 +87,7 @@ public class AdmissionController implements AutoCloseable {
         boolean eligible = this.rule.isEligible(userResolver.resolve(userToken), dataCentre);
         double costEstimation = Double.NaN;
         if(eligible) {
-            costEstimation = rule.backOff() ? Double.MAX_VALUE : this.serverFarm.costPerUser();
+            costEstimation = rule.backOff() ? Double.MAX_VALUE : this.dataCentre.getCost();
         }
         return new AdmissionControllerResponse(userToken, eligible, costEstimation);
     }
