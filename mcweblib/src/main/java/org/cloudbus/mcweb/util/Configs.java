@@ -36,9 +36,12 @@ public final class Configs {
     public static final String EP_PATH = "/entry-point";
     public static final String SOURCE_IP_PARAM = "sourceIP";
     public static final String USER_TOKEN_PARAM = "userToken";
-    public static final String EP_SERVICE_PATH = SERVICE_PATH + 
+    public static final String EP_FULL_SERVICE_PATH = SERVICE_PATH + 
             "/{" + SOURCE_IP_PARAM + "}/" +
             "{" + USER_TOKEN_PARAM + "}";
+
+    public static final String EP_SERVICE_PATH = SERVICE_PATH + 
+            "/{" + USER_TOKEN_PARAM + "}";
 
     public static final int DEFAULT_AC_PORT = DEFAULT_EP_PORT + 1;
     public static final String AC_PATH = "/admission-control";
