@@ -1,6 +1,6 @@
 package org.cloudbus.mcweb.admissioncontroller;
 
-import org.cloudbus.mcweb.rules.User;
+import org.cloudbus.mcweb.User;
 
 /**
  * 

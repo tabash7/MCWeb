@@ -1,4 +1,4 @@
-package org.cloudbus.mcweb.rules;
+package org.cloudbus.mcweb;
 
 import java.util.Arrays;
 import java.util.HashSet;

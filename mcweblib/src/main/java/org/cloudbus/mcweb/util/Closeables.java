@@ -191,4 +191,27 @@ public class Closeables {
             }
         }
     }
+    
+    /**
+     * Adds a shutdown hook for the closable instance. If an exception is thrown from closing it - it is ignored.
+     * @param closables - the shutdown closeables. Must not be null.
+     */
+    public static void addSilentShutdownHook(final Iterable<? extends AutoCloseable> closeables) {
+		Preconditions.checkNotNull(closeables);
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				closeAll(closeables);
+			} catch (Exception e) {
+				// Do norhing
+			}
+		}));
+    }
+    
+    /**
+     * Adds a shutdown hook for the closable instance. If an exception is thrown from closing it - it is ignored.
+     * @param closables - the shutdown closeables. Must not be null.
+     */
+    public static void addSilentShutdownHook(final AutoCloseable... closeables) {
+    	addSilentShutdownHook(Arrays.asList(closeables));
+    }
 }

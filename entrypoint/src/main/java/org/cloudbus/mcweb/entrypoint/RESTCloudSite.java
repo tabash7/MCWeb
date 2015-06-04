@@ -15,6 +15,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 
 import org.cloudbus.mcweb.AdmissionControllerResponse;
+import org.cloudbus.mcweb.DataCentre;
 import org.cloudbus.mcweb.util.Jsons;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -38,6 +39,8 @@ public class RESTCloudSite extends CloudSite {
     
     private final Client client;
     private final WebTarget webTarget;
+    
+    private DataCentre definition;
     
     // For reconnection logic
     private final int reconnectionIntervalInMillis;
@@ -80,6 +83,8 @@ public class RESTCloudSite extends CloudSite {
         // If connected or it's time to try to reconnect...
         if(tryConnection()) {
             try{
+            	updateDefinition();
+            	
                 List<String> userTokens = requests.stream().map(EPUserRequest::getUserToken).collect(Collectors.toList());
                 String responseJson = webTarget.queryParam(USER_TOKENS_PARAM, userTokens.toArray()).request(MediaType.APPLICATION_JSON).get(String.class);
                 AdmissionControllerResponse[] responses = Jsons.fromJson(responseJson, AdmissionControllerResponse[].class);
@@ -105,6 +110,14 @@ public class RESTCloudSite extends CloudSite {
         }
     }
 
+	private synchronized void updateDefinition() {
+		if(definition != null) {
+			WebTarget definitionTarget = client.target(getAdmissionControllerAddress()).path(AC_PATH).path(AC_DC_DEF_PATH);
+			String defJson = definitionTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+		    definition = Jsons.fromJson(defJson, DataCentre.class);
+		}
+	}
+
     private synchronized void connectionEstablished(boolean connected) {
         this.connected = connected;
         this.connectionLostTimeMillis = connected ? 0 : System.currentTimeMillis();
@@ -114,7 +127,16 @@ public class RESTCloudSite extends CloudSite {
         return connected || System.currentTimeMillis() - connectionLostTimeMillis >= this.reconnectionIntervalInMillis;
     }
     
-    @Override
+    
+    /**
+     * Returns the data centre definition.
+     * @return - the data centre definition.
+     */
+    public synchronized DataCentre getDefinition() {
+		return definition;
+	}
+
+	@Override
     public void close() throws Exception {
         closeAll(client::close);
     }

@@ -1,7 +1,7 @@
 package org.cloudbus.mcweb.admissioncontroller;
 
-import org.cloudbus.mcweb.rules.DataCentre;
-import org.cloudbus.mcweb.rules.User;
+import org.cloudbus.mcweb.DataCentre;
+import org.cloudbus.mcweb.User;
 
 import com.google.common.base.Preconditions;
 

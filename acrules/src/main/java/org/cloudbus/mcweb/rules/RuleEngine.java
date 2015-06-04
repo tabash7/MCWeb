@@ -15,6 +15,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.assertj.core.util.Preconditions;
+import org.cloudbus.mcweb.DataCentre;
+import org.cloudbus.mcweb.User;
 import org.drools.compiler.compiler.DroolsError;
 import org.drools.compiler.compiler.DroolsParserException;
 import org.drools.compiler.compiler.PackageBuilder;

@@ -2,9 +2,13 @@ package org.cloudbus.mcweb.admissioncontroller;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
+import org.cloudbus.mcweb.DataCentre;
 import org.cloudbus.mcweb.ServerFarm;
-import org.cloudbus.mcweb.rules.DataCentre;
 import org.cloudbus.mcweb.util.Configs;
 import org.cloudbus.mcweb.util.Jsons;
 import org.eclipse.jetty.server.Server;
@@ -20,6 +24,13 @@ import com.google.common.base.Preconditions;
  */
 public class Main {
     
+	static {
+		Logger log = LogManager.getLogManager().getLogger("");
+		for (Handler h : log.getHandlers()) {
+		    h.setLevel(Level.WARNING);
+		}
+	}
+	
     /**
      * Starts a local admission controller. The arguements should be in the form:
      * 
@@ -67,6 +78,8 @@ public class Main {
             jettyServer.setHandler(context);
             ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/*");
             jerseyServlet.setInitOrder(0);
+            ServletHolder webServlet = context.addServlet(PingServelet.class, "/ping/*");
+            webServlet.setInitOrder(0);
 
             // Tells the Jersey Servlet which REST service/class to load.
             jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",

@@ -2,9 +2,9 @@ package org.cloudbus.mcweb.admissioncontroller;
 
 import java.util.Set;
 
-import org.cloudbus.mcweb.rules.DataCentre;
+import org.cloudbus.mcweb.DataCentre;
+import org.cloudbus.mcweb.User;
 import org.cloudbus.mcweb.rules.RuleEngine;
-import org.cloudbus.mcweb.rules.User;
 
 import com.google.common.base.Preconditions;
 

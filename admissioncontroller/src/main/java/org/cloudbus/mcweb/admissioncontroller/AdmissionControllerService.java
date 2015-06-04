@@ -9,6 +9,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import org.cloudbus.mcweb.AdmissionControllerResponse;
+import org.cloudbus.mcweb.DataCentre;
 
 import static org.cloudbus.mcweb.util.Configs.*;
 
@@ -26,4 +27,14 @@ public class AdmissionControllerService {
         List<AdmissionControllerResponse> responses = AdmissionController.getInstance().enquire(userTokens);
         return Jsons.toJson(responses.toArray(new AdmissionControllerResponse[responses.size()]), AdmissionControllerResponse[].class);
     }
+    
+    @GET
+    @Path(AC_DC_DEF_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String definition() {
+        // userTokens[123, 456]
+        DataCentre dc = AdmissionController.getInstance().getDataCentre();
+        return Jsons.toJson(dc);
+    }
+    
 }

@@ -1,15 +1,19 @@
 package org.cloudbus.mcweb.entrypoint;
 
+import static org.cloudbus.mcweb.util.Configs.EP_PATH;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.cloudbus.cloudsim.ex.geolocation.geoip2.GeoIP2PingERService;
 import org.cloudbus.mcweb.util.Configs;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-
-import static org.cloudbus.mcweb.util.Configs.*;
 
 /**
  * Starts the entry point web service.
@@ -19,6 +23,14 @@ import static org.cloudbus.mcweb.util.Configs.*;
  */
 public class Main {
     
+	static {
+		// Config log level
+		Logger log = LogManager.getLogManager().getLogger("");
+		for (Handler h : log.getHandlers()) {
+		    h.setLevel(Level.WARNING);
+		}
+	}
+	
     /**
      * Starts the entry point service.
      * The arguements should be in the form:

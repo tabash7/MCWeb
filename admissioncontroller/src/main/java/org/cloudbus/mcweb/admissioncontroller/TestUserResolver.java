@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.cloudbus.mcweb.rules.User;
+import org.cloudbus.mcweb.User;
 
 import com.google.common.base.Preconditions;
 

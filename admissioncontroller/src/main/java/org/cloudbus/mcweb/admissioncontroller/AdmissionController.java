@@ -5,8 +5,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.cloudbus.mcweb.AdmissionControllerResponse;
+import org.cloudbus.mcweb.DataCentre;
 import org.cloudbus.mcweb.ServerFarm;
-import org.cloudbus.mcweb.rules.DataCentre;
 
 import com.google.common.base.Preconditions;
 
@@ -92,7 +92,15 @@ public class AdmissionController implements AutoCloseable {
         return new AdmissionControllerResponse(userToken, eligible, costEstimation);
     }
     
-    @Override
+    /**
+     * Returns the data centre definition.
+     * @return the data centre definition.
+     */
+    public synchronized DataCentre getDataCentre() {
+		return dataCentre;
+	}
+
+	@Override
     public synchronized void close() throws Exception {
         LOG.info("Closing the admission controller");
         closeAll(serverFarm, rule);

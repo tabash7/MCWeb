@@ -1,20 +1,25 @@
 package org.cloudbus.mcweb.experimentclient;
 
+
 import static org.cloudbus.mcweb.util.Configs.EP_PATH;
-import static org.cloudbus.mcweb.util.Configs.EP_FULL_SERVICE_PATH;
-import static org.cloudbus.mcweb.util.Configs.EP_SERVICE_PATH;
-import static org.cloudbus.mcweb.util.Configs.USER_TOKENS_PARAM;
+import static org.cloudbus.mcweb.util.Configs.SERVICE_PATH;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
@@ -22,6 +27,11 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 
+import org.cloudbus.mcweb.EntryPointResponse;
+import org.cloudbus.mcweb.User;
+import org.cloudbus.mcweb.admissioncontroller.IUserResolver;
+import org.cloudbus.mcweb.admissioncontroller.TestUserResolver;
+import org.cloudbus.mcweb.util.Jsons;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 
@@ -32,14 +42,41 @@ import org.glassfish.jersey.client.ClientProperties;
  */
 public class Main {
     
+	static {
+		Logger log = LogManager.getLogManager().getLogger("");
+		for (Handler h : log.getHandlers()) {
+		    h.setLevel(Level.WARNING);
+		}
+	}
+	
     private static Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
     
     private static Client client;
-    private static List<String> entryPointAddresses;
+    private static List<String[]> entryPointAddresses;
     private static final long clientStartTime = System.currentTimeMillis();
+    private static String clientLocation;
     private static final ExecutorService cache =  Executors.newCachedThreadPool();
     private static Random random = new Random();
-    private static final String OUT_FILE = "ClientLog.txt";
+    private static BufferedMultiThreadedFileWriter writer;
+    private static final AtomicInteger COUNT = new AtomicInteger(0);
+    private static final IUserResolver USER_RESOLVER = new TestUserResolver();
+    private static final int[] LOG_LENS = new int[] {
+    	8,
+		8,
+		10,
+		7,
+		13,
+		13,
+		13,
+		33,
+		15, 
+		15,
+		15,
+		15,
+		15,
+		10
+    };
+    
     
     /**
      * Starts a test client. 
@@ -48,10 +85,27 @@ public class Main {
      * @throws Exception - if something goes wrong
      */
     public static void main(String[] args) throws Exception {
-        String clientCode = args[0];
-        String entryPointsFile = args[1];
+        clientLocation = args.length > 0 ? args[0] : "Local";
+        InputStream entryPointsFile = args.length > 1 ? new FileInputStream(args[1]) : Main.class.getResourceAsStream("/entrypoints.csv");
         
-        // Create a HTTP client
+        // Open the output file for the client
+        writer = new BufferedMultiThreadedFileWriter("ClientLog_" + clientLocation + ".csv");
+        writer.writeCsv(LOG_LENS,"Time",
+        		"UserNum",
+        		"ClientLoc",
+        		"EPLoc",
+        		"SelCloudSite",
+        		"DispatchTime",
+        		"Latency",
+        		"UserId",
+        		"Citizenships",
+        		"UserTags",
+        		"Provider",
+        		"CloudLocation",
+        		"DCTags",
+        		"Cost");
+        
+        // Create an HTTP client
         ClientConfig configuration = new ClientConfig();
         configuration = configuration.property(ClientProperties.CONNECT_TIMEOUT, 20000);
         configuration = configuration.property(ClientProperties.READ_TIMEOUT, 20000);
@@ -59,12 +113,12 @@ public class Main {
         
         // Read the address of all entry points
         entryPointAddresses = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(entryPointsFile))) {
-            String entryPointAddress = null;
-            while ((entryPointAddress = reader.readLine()) != null) {
-                entryPointAddress = entryPointAddress.trim();
-                if(!entryPointAddress.isEmpty()) {
-                    entryPointAddresses.add(entryPointAddress);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(entryPointsFile))) {
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if(!line.isEmpty()) {
+                    entryPointAddresses.add(line.split("\\s*;\\s*"));
                 }
             }
             entryPointAddresses = Collections.unmodifiableList(entryPointAddresses);
@@ -74,7 +128,8 @@ public class Main {
         }
 
         int secsBetweenRuns = 5;
-        for (long sec = 0; sec <= 24 * 60 *60; sec += secsBetweenRuns){
+        long day = 24l * 60l * 60l;
+        for (long sec = 0; sec <= day; sec += secsBetweenRuns){
             startRuns(10, secsBetweenRuns);
             sleep(secsBetweenRuns);
         }
@@ -95,15 +150,54 @@ public class Main {
         
         // Pick a random entry point
         int entryPointId = random.nextInt(entryPointAddresses.size());
-        String entryPointAddress = entryPointAddresses.get(entryPointId);
+        String[] ep = entryPointAddresses.get(entryPointId);
+        String entryPointCode = ep[0];
+        String entryPointAddress = ep[1];
+        
+        // User number and id
+        int userCount = COUNT.incrementAndGet();
+        String userToken = "U" + userCount + "_" + Main.clientLocation + "_" + random.nextLong();
+        User u = USER_RESOLVER.resolve(userToken);
         
         // Point the client to the entry point
-        WebTarget webTarget = client.target(entryPointAddress).path(EP_PATH).path(EP_SERVICE_PATH).path("User" + random.nextLong());
-        String response = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+        WebTarget webTarget = client.target(entryPointAddress).path(EP_PATH).path(SERVICE_PATH).path(userToken);
+        EntryPointResponse response = new EntryPointResponse(null, null);
+        try{
+        	String responseJson = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+        	response = Jsons.fromJson(responseJson, EntryPointResponse.class);
+        } catch (Exception e) {
+        	LOG.log(Level.SEVERE, "Could not load responses from entry points!", e);
+        }
         
         // current time after the response
-        long endTime = System.currentTimeMillis();        
+        long clientEndTime = System.currentTimeMillis();        
         
+        Long latency = null;
+        if(response.getRedirectAddress() != null) {
+	        // Ping ...
+	        long beforePing = System.currentTimeMillis();
+	        WebTarget pingTarget = client.target(response.getRedirectAddress());
+	        @SuppressWarnings("unused")
+			String pingResponse = pingTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+	        long afterPing = System.currentTimeMillis();
+	        latency = (afterPing - beforePing) / 2;
+        }
+        
+        writer.writeCsv(LOG_LENS, clientStartTime - Main.clientStartTime,
+        		userCount,
+        		Main.clientLocation,
+        		entryPointCode,
+        		response.getSelectedCloudSiteCode(),
+        		clientEndTime - clientStartTime,
+        		latency, 
+        		userToken,
+        		Arrays.toString(u.getCitizenships().toArray()),
+        		Arrays.toString(u.getTags().toArray()),
+        		response.getDefinition().getProviderCode(),
+        		response.getDefinition().getLocationCode(),
+        		Arrays.toString(response.getDefinition().getTags().toArray()),
+        		response.getDefinition().getCost()
+        		);
     }
     
     private static void sleep(double secs) {

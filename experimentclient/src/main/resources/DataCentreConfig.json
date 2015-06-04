@@ -1,9 +1,0 @@
-{
-  "locationCode": "BG",
-  "providerCode": "AWS",
-  "cost" : 5,
-  "tags": [
-    "PCI-DSS",
-    "TAG"
-  ]
-}

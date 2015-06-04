@@ -8,7 +8,8 @@ import org.cloudbus.mcweb.rules.relations.ITransitiveRelation;
 import org.cloudbus.mcweb.rules.relations.IReflexiveRelation;
 import org.cloudbus.mcweb.rules.relations.ISymmetricRelation;
 import org.cloudbus.mcweb.rules.relations.ContainsJurisdiction;
-import org.cloudbus.mcweb.rules.User;
+import org.cloudbus.mcweb.User;
+import org.cloudbus.mcweb.DataCentre;
 
 import java.util.*;
 
