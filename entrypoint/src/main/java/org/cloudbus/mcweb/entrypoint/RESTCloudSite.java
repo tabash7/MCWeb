@@ -104,6 +104,9 @@ public class RESTCloudSite extends CloudSite {
 
             } catch (ProcessingException | WebApplicationException e) {
                 // Oops the connection failed ...
+            	List<String> userTokens = requests.stream().map(EPUserRequest::getUserToken).collect(Collectors.toList());
+            	String call = webTarget.queryParam(USER_TOKENS_PARAM, userTokens.toArray()).getUri().toString(); 
+                LOG.log(Level.SEVERE, "Call \"" + call +"\" has failed");
                 LOG.log(Level.SEVERE, "Cloudsite \"" + toString() +"\" has become unreachable", e);
                 connectionEstablished(false);
             }
