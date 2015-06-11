@@ -157,7 +157,7 @@ public class Main {
         
         // User number and id
         int userCount = COUNT.incrementAndGet();
-        String userToken = "U" + userCount + "_" + random.nextInt();
+        String userToken = (clientLocation + "_" + userCount).substring(0,10).trim();
         User u = USER_RESOLVER.resolve(userToken);
         
         // Point the client to the entry point
