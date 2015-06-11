@@ -22,15 +22,15 @@ import org.eclipse.jetty.servlet.ServletHolder;
  *
  */
 public class Main {
-    
-	static {
-		// Config log level
-		Logger log = LogManager.getLogManager().getLogger("");
-		for (Handler h : log.getHandlers()) {
-		    h.setLevel(Level.WARNING);
-		}
-	}
-	
+
+    static {
+        // Config log level
+        Logger log = LogManager.getLogManager().getLogger("");
+        for (Handler h : log.getHandlers()) {
+            h.setLevel(Level.WARNING);
+        }
+    }
+
     /**
      * Starts the entry point service.
      * The arguements should be in the form:

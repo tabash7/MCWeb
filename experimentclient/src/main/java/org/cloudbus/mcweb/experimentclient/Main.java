@@ -41,14 +41,14 @@ import org.glassfish.jersey.client.ClientProperties;
  * @author nikolay.grozev
  */
 public class Main {
-    
-	static {
-		Logger log = LogManager.getLogManager().getLogger("");
-		for (Handler h : log.getHandlers()) {
-		    h.setLevel(Level.WARNING);
-		}
-	}
-	
+
+    static {
+        Logger log = LogManager.getLogManager().getLogger("");
+        for (Handler h : log.getHandlers()) {
+            h.setLevel(Level.WARNING);
+        }
+    }
+
     private static Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
     
     private static Client client;
@@ -61,20 +61,20 @@ public class Main {
     private static final AtomicInteger COUNT = new AtomicInteger(0);
     private static final IUserResolver USER_RESOLVER = new TestUserResolver();
     private static final int[] LOG_LENS = new int[] {
-    	8,
-		8,
-		10,
-		7,
-		13,
-		13,
-		13,
-		33,
-		15, 
-		15,
-		15,
-		15,
-		15,
-		10
+            8,
+            6,
+            8,
+            7,
+            10,
+            6,
+            8,
+            18,
+            13,
+            12,
+            8,
+            8,
+            13,
+            6
     };
     
     
@@ -90,20 +90,21 @@ public class Main {
         
         // Open the output file for the client
         writer = new BufferedMultiThreadedFileWriter("ClientLog_" + clientLocation + ".csv");
-        writer.writeCsv(LOG_LENS,"Time",
-        		"UserNum",
-        		"ClientLoc",
-        		"EPLoc",
-        		"SelCloudSite",
-        		"DispatchTime",
-        		"Latency",
-        		"UserId",
-        		"Citizenships",
-        		"UserTags",
-        		"Provider",
-        		"CloudLocation",
-        		"DCTags",
-        		"Cost");
+        writer.writeCsv(LOG_LENS,
+                "Time",
+                "UNum",
+                "Client",
+                "EPLoc",
+                "SelCloud",
+                "DispT",
+                "Latency",
+                "UserId",
+                "Citizenships",
+                "UserTags",
+                "Provider",
+                "CloudLoc",
+                "DCTags",
+                "Cost");
         
         // Create an HTTP client
         ClientConfig configuration = new ClientConfig();
@@ -130,7 +131,7 @@ public class Main {
         int secsBetweenRuns = 5;
         long day = 24l * 60l * 60l;
         for (long sec = 0; sec <= day; sec += secsBetweenRuns){
-            startRuns(10, secsBetweenRuns);
+            startRuns(100, secsBetweenRuns);
             sleep(secsBetweenRuns);
         }
     }
@@ -156,48 +157,50 @@ public class Main {
         
         // User number and id
         int userCount = COUNT.incrementAndGet();
-        String userToken = "U" + userCount + "_" + Main.clientLocation + "_" + random.nextLong();
+        String userToken = "U" + userCount + "_" + random.nextInt();
         User u = USER_RESOLVER.resolve(userToken);
         
         // Point the client to the entry point
         WebTarget webTarget = client.target(entryPointAddress).path(EP_PATH).path(SERVICE_PATH).path(userToken);
         EntryPointResponse response = new EntryPointResponse(null, null);
-        try{
-        	String responseJson = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
-        	response = Jsons.fromJson(responseJson, EntryPointResponse.class);
+        try {
+            String responseJson = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+            response = Jsons.fromJson(responseJson, EntryPointResponse.class);
         } catch (Exception e) {
-        	LOG.log(Level.SEVERE, "Could not load responses from entry points!", e);
+            LOG.log(Level.SEVERE, String.format("Could not load responses from entry point %s: %s", ep[0], ep[1]));
+            LOG.log(Level.SEVERE, "Connection error: ", e);
         }
         
         // current time after the response
         long clientEndTime = System.currentTimeMillis();        
         
         Long latency = null;
-        if(response.getRedirectAddress() != null) {
-	        // Ping ...
-	        long beforePing = System.currentTimeMillis();
-	        WebTarget pingTarget = client.target(response.getRedirectAddress());
-	        @SuppressWarnings("unused")
-			String pingResponse = pingTarget.request(MediaType.APPLICATION_JSON).get(String.class);
-	        long afterPing = System.currentTimeMillis();
-	        latency = (afterPing - beforePing) / 2;
+        if (response.getRedirectAddress() != null) {
+            // Ping ...
+            long beforePing = System.currentTimeMillis();
+            WebTarget pingTarget = client.target(response.getRedirectAddress());
+            @SuppressWarnings("unused")
+            String pingResponse = pingTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+            long afterPing = System.currentTimeMillis();
+            latency = (afterPing - beforePing) / 2;
         }
         
         writer.writeCsv(LOG_LENS, clientStartTime - Main.clientStartTime,
-        		userCount,
-        		Main.clientLocation,
-        		entryPointCode,
-        		response.getSelectedCloudSiteCode(),
-        		clientEndTime - clientStartTime,
-        		latency, 
-        		userToken,
-        		Arrays.toString(u.getCitizenships().toArray()),
-        		Arrays.toString(u.getTags().toArray()),
-        		response.getDefinition().getProviderCode(),
-        		response.getDefinition().getLocationCode(),
-        		Arrays.toString(response.getDefinition().getTags().toArray()),
-        		response.getDefinition().getCost()
-        		);
+                userCount,
+                Main.clientLocation,
+                entryPointCode,
+                response.getSelectedCloudSiteCode(),
+                clientEndTime - clientStartTime,
+                latency,
+                userToken,
+                Arrays.toString(u.getCitizenships().toArray()),
+                Arrays.toString(u.getTags().toArray()),
+                response.getDefinition() == null ? "null" : response.getDefinition().getProviderCode(),
+                response.getDefinition() == null ? "null" : response.getDefinition().getLocationCode(),
+                response.getDefinition() == null ? "null" : Arrays.toString(response.getDefinition().getTags().toArray()),
+                response.getDefinition() == null ? "null" : response.getDefinition().getCost()
+        );
+        //writer.flush();
     }
     
     private static void sleep(double secs) {

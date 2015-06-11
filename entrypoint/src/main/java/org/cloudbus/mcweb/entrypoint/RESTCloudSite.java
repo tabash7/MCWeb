@@ -110,13 +110,13 @@ public class RESTCloudSite extends CloudSite {
         }
     }
 
-	private synchronized void updateDefinition() {
-		if(definition != null) {
-			WebTarget definitionTarget = client.target(getAdmissionControllerAddress()).path(AC_PATH).path(AC_DC_DEF_PATH);
-			String defJson = definitionTarget.request(MediaType.APPLICATION_JSON).get(String.class);
-		    definition = Jsons.fromJson(defJson, DataCentre.class);
-		}
-	}
+    private synchronized void updateDefinition() {
+        if (definition == null) {
+            WebTarget definitionTarget = client.target(getAdmissionControllerAddress()).path(AC_PATH).path(AC_DC_DEF_PATH);
+            String defJson = definitionTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+            definition = Jsons.fromJson(defJson, DataCentre.class);
+        }
+    }
 
     private synchronized void connectionEstablished(boolean connected) {
         this.connected = connected;
