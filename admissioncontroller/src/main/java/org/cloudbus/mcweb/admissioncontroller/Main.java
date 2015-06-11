@@ -23,14 +23,14 @@ import com.google.common.base.Preconditions;
  * @author nikolay.grozev
  */
 public class Main {
-    
-	static {
-		Logger log = LogManager.getLogManager().getLogger("");
-		for (Handler h : log.getHandlers()) {
-		    h.setLevel(Level.WARNING);
-		}
-	}
-	
+
+    static {
+        Logger log = LogManager.getLogManager().getLogger("");
+        for (Handler h : log.getHandlers()) {
+            h.setLevel(Level.WARNING);
+        }
+    }
+
     /**
      * Starts a local admission controller. The arguements should be in the form:
      * 
