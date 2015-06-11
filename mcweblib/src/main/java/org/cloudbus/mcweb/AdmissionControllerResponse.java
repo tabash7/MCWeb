@@ -29,7 +29,7 @@ public class AdmissionControllerResponse {
      */
     public AdmissionControllerResponse(final String userToken, final boolean eligible, final double costEstimation) {
         Preconditions.checkNotNull(userToken);
-        Preconditions.checkArgument((!Double.isNaN(costEstimation) || eligible) || costEstimation >= 0);
+        Preconditions.checkArgument((Double.isNaN(costEstimation) && !eligible) || costEstimation >= 0);
 
         this.userToken = userToken;
         this.eligible = eligible;
