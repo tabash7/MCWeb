@@ -85,7 +85,7 @@ public class RESTCloudSite extends CloudSite {
             try{
             	updateDefinition();
             	
-                List<String> userTokens = requests.stream().map(EPUserRequest::getUserToken).collect(Collectors.toList());
+                List<String> userTokens = requests.stream().map(EPUserRequest::getUserToken).distinct().collect(Collectors.toList());
                 String responseJson = webTarget.queryParam(USER_TOKENS_PARAM, userTokens.toArray()).request(MediaType.APPLICATION_JSON).get(String.class);
                 AdmissionControllerResponse[] responses = Jsons.fromJson(responseJson, AdmissionControllerResponse[].class);
                 connectionEstablished(true);

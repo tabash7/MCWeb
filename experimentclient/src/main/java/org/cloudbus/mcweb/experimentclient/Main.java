@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +32,7 @@ import org.cloudbus.mcweb.EntryPointResponse;
 import org.cloudbus.mcweb.User;
 import org.cloudbus.mcweb.admissioncontroller.IUserResolver;
 import org.cloudbus.mcweb.admissioncontroller.TestUserResolver;
+import org.cloudbus.mcweb.util.Closeables;
 import org.cloudbus.mcweb.util.Jsons;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -60,6 +62,8 @@ public class Main {
     private static BufferedMultiThreadedFileWriter writer;
     private static final AtomicInteger COUNT = new AtomicInteger(0);
     private static final IUserResolver USER_RESOLVER = new TestUserResolver();
+    private static ConcurrentHashMap<String, WebTarget> entryPointTargets = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, WebTarget> pingTargets = new ConcurrentHashMap<>();
     private static final int[] LOG_LENS = new int[] {
             8,
             6,
@@ -111,6 +115,7 @@ public class Main {
         configuration = configuration.property(ClientProperties.CONNECT_TIMEOUT, 120000);
         configuration = configuration.property(ClientProperties.READ_TIMEOUT, 120000);
         client = ClientBuilder.newClient();
+        Closeables.addSilentShutdownHook(client::close);
         
         // Read the address of all entry points
         entryPointAddresses = new ArrayList<>();
@@ -162,7 +167,7 @@ public class Main {
         User u = USER_RESOLVER.resolve(userToken);
         
         // Point the client to the entry point
-        WebTarget webTarget = client.target(entryPointAddress).path(EP_PATH).path(SERVICE_PATH).path(userToken);
+        WebTarget webTarget = entryPointTarget(entryPointAddress, userToken);
         EntryPointResponse response = new EntryPointResponse(null, null);
         try {
             String responseJson = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
@@ -179,7 +184,7 @@ public class Main {
         if (response.getRedirectAddress() != null) {
             // Ping ...
             long beforePing = System.currentTimeMillis();
-            WebTarget pingTarget = client.target(response.getRedirectAddress());
+            WebTarget pingTarget = pingTarget(response.getRedirectAddress());
             @SuppressWarnings("unused")
             String pingResponse = pingTarget.request(MediaType.APPLICATION_JSON).get(String.class);
             long afterPing = System.currentTimeMillis();
@@ -203,7 +208,22 @@ public class Main {
         );
         //writer.flush();
     }
-    
+
+	private static WebTarget entryPointTarget(final String entryPointAddress, final String userToken) {
+		if(!entryPointTargets.containsKey(entryPointAddress)) {
+			entryPointTargets.putIfAbsent(entryPointAddress, client.target(entryPointAddress).path(EP_PATH).path(SERVICE_PATH));
+		}
+		return entryPointTargets.get(entryPointAddress).path(userToken);
+	}
+
+	private static WebTarget pingTarget(final String pingAddress) {
+		if(!pingTargets.containsKey(pingAddress)) {
+			pingTargets.putIfAbsent(pingAddress, client.target(pingAddress));
+		}
+		return pingTargets.get(pingAddress);
+	}
+	
+	
     private static void sleep(double secs) {
         try {
             Thread.sleep(Math.round(secs * 1000));
