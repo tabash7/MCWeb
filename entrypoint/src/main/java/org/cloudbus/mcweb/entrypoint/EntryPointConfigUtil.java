@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
@@ -47,6 +48,7 @@ public final class EntryPointConfigUtil {
             Preconditions.checkArgument(inStream.available() > 0, "No data in the constraints config.");
 
             properties.load(stream);
+            LOG.warning("Loaded Config stream:" + properties.toString());
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Could not load the configuration!", e);
             throw new IllegalStateException(e);
@@ -80,12 +82,13 @@ public final class EntryPointConfigUtil {
             // Read the file line by line
             // Skip the header
             String[] lineElems = csv.readNext();
-
+            LOG.warning("Config line:" + Arrays.toString(lineElems));
 
             while ((lineElems = csv.readNext()) != null) {
                 for (int i = 0; i < lineElems.length; i++) {
                     lineElems[i] = lineElems[i].trim();
                 }
+                LOG.warning("Config line:" + Arrays.toString(lineElems));
                 sites.add(cloudSiteFactory.apply(lineElems));
             }
         } catch (IOException e) {

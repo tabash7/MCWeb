@@ -31,6 +31,8 @@ public class Main {
         }
     }
 
+    private static Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
+    
     /**
      * Starts a local admission controller. The arguements should be in the form:
      * 
@@ -62,6 +64,7 @@ public class Main {
         
         //The data centre for this admission controller
         DataCentre dataCenre = Jsons.fromJson(dataCentreStream, DataCentre.class);
+        LOG.warning("Loaded DC definition:" + dataCenre.toString());
         
         // The server to start
         Server jettyServer = new Server(jettyPort);

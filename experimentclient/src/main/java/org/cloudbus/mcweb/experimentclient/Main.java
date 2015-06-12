@@ -63,12 +63,12 @@ public class Main {
     private static final int[] LOG_LENS = new int[] {
             8,
             6,
-            8,
-            7,
-            10,
+            11,
+            11,
+            11,
             6,
             8,
-            18,
+            25,
             13,
             12,
             8,
@@ -108,8 +108,8 @@ public class Main {
         
         // Create an HTTP client
         ClientConfig configuration = new ClientConfig();
-        configuration = configuration.property(ClientProperties.CONNECT_TIMEOUT, 20000);
-        configuration = configuration.property(ClientProperties.READ_TIMEOUT, 20000);
+        configuration = configuration.property(ClientProperties.CONNECT_TIMEOUT, 120000);
+        configuration = configuration.property(ClientProperties.READ_TIMEOUT, 120000);
         client = ClientBuilder.newClient();
         
         // Read the address of all entry points
@@ -120,6 +120,7 @@ public class Main {
                 line = line.trim();
                 if(!line.isEmpty()) {
                     entryPointAddresses.add(line.split("\\s*;\\s*"));
+                    LOG.log(Level.WARNING,"Entry Point Line: {0}", line);
                 }
             }
             entryPointAddresses = Collections.unmodifiableList(entryPointAddresses);
@@ -157,7 +158,7 @@ public class Main {
         
         // User number and id
         int userCount = COUNT.incrementAndGet();
-        String userToken = (clientLocation + userCount).substring(0,10).trim();
+        String userToken = (clientLocation + userCount + "-" + Math.abs(random.nextInt(1000)));
         User u = USER_RESOLVER.resolve(userToken);
         
         // Point the client to the entry point
@@ -168,7 +169,7 @@ public class Main {
             response = Jsons.fromJson(responseJson, EntryPointResponse.class);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, String.format("Could not load responses from entry point %s: %s", ep[0], ep[1]));
-            LOG.log(Level.SEVERE, "Connection error: ", e);
+            LOG.log(Level.SEVERE, "Attempted to connect with: " + webTarget.getUri().toString());
         }
         
         // current time after the response

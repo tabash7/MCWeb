@@ -40,7 +40,7 @@ public class EntryPointService {
         CloudSite cs = req.selectCloudSite();
         //String redirectAddress = cs == null ? null : cs.getLoadBalancerAddress();
         
-        EntryPointResponse response = new EntryPointResponse(cs.getName(), cs.getLoadBalancerAddress());
+        EntryPointResponse response = new EntryPointResponse(cs == null ? null : cs.getName(), cs == null? null : cs.getLoadBalancerAddress());
         if(cs instanceof RESTCloudSite) {
         	RESTCloudSite rcs = (RESTCloudSite)cs;
         	response = new EntryPointResponse(cs.getName(), cs.getLoadBalancerAddress(), rcs.getDefinition());
