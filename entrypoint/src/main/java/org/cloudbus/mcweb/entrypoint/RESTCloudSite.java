@@ -1,5 +1,7 @@
 package org.cloudbus.mcweb.entrypoint;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -13,6 +15,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.cloudbus.mcweb.AdmissionControllerResponse;
 import org.cloudbus.mcweb.DataCentre;
@@ -86,23 +89,25 @@ public class RESTCloudSite extends CloudSite {
             	updateDefinition();
             	
                 List<String> userTokens = requests.stream().map(EPUserRequest::getUserToken).distinct().collect(Collectors.toList());
-                String responseJson = webTarget.queryParam(USER_TOKENS_PARAM, userTokens.toArray()).request(MediaType.APPLICATION_JSON).get(String.class);
-                AdmissionControllerResponse[] responses = Jsons.fromJson(responseJson, AdmissionControllerResponse[].class);
-                connectionEstablished(true);
-            
-                LOG.log(Level.INFO, "Cloudsite {0} has been reached. Responses:{1}", new Object[]{toString(), Arrays.toString(responses)});
+                Response r = webTarget.queryParam(USER_TOKENS_PARAM, userTokens.toArray()).request(MediaType.APPLICATION_JSON).get();
+                try (Closeable ac =  r::close) {
+	                String responseJson = r.readEntity(String.class);
+	                AdmissionControllerResponse[] responses = Jsons.fromJson(responseJson, AdmissionControllerResponse[].class);
+	                connectionEstablished(true);
+	                LOG.log(Level.INFO, "Cloudsite {0} has been reached. Responses:{1}", new Object[]{toString(), Arrays.toString(responses)});
 
-                // TODO the following could be optimised to avoid nested loops ...
-                for (EPUserRequest userRequest : requests) {
-                    for (AdmissionControllerResponse response : responses){
-                        if (userRequest.getUserToken().equals(response.getUserToken())) {
-                            userRequest.addResponseFromCloudSite(new EPAdmissionControllerResponse(response, this));
-                            break;
-                        }
-                    }
+	                // TODO the following could be optimised to avoid nested loops ...
+	                for (EPUserRequest userRequest : requests) {
+	                    for (AdmissionControllerResponse response : responses){
+	                        if (userRequest.getUserToken().equals(response.getUserToken())) {
+	                            userRequest.addResponseFromCloudSite(new EPAdmissionControllerResponse(response, this));
+	                            break;
+	                        }
+	                    }
+	                }
                 }
 
-            } catch (ProcessingException | WebApplicationException e) {
+            } catch (IOException | ProcessingException | WebApplicationException e) {
                 // Oops the connection failed ...
             	List<String> userTokens = requests.stream().map(EPUserRequest::getUserToken).collect(Collectors.toList());
             	String call = webTarget.queryParam(USER_TOKENS_PARAM, userTokens.toArray()).getUri().toString(); 
