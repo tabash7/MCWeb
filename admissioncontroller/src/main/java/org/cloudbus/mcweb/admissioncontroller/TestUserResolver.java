@@ -37,7 +37,7 @@ public class TestUserResolver implements IUserResolver {
     private static Set<String> tags(final int num, final Set<String> citizenships){
         Set<String> result = new HashSet<>();
         if(num % 2 == 0){
-            result.add("PIC-DSS");
+            result.add("PCI-DSS");
         }
         if(num % 3 == 0 && citizenships.contains("USA")) {
             result.add("US-GOV");
