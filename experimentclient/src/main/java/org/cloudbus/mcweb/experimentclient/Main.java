@@ -55,7 +55,7 @@ public class Main {
     
     private static Client client;
     private static List<String[]> entryPointAddresses;
-    private static final long clientStartTime = System.currentTimeMillis();
+    private static long clientStartTime = System.currentTimeMillis();
     private static String clientLocation;
     private static final ExecutorService cache =  Executors.newCachedThreadPool();
     private static Random random = new Random();
@@ -64,6 +64,7 @@ public class Main {
     private static final IUserResolver USER_RESOLVER = new TestUserResolver();
     private static ConcurrentHashMap<String, WebTarget> entryPointTargets = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, WebTarget> pingTargets = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Double> latencies = new ConcurrentHashMap<>();
     private static final int[] LOG_LENS = new int[] {
             8,
             6,
@@ -91,6 +92,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         clientLocation = args.length > 0 ? args[0] : "Local";
         InputStream entryPointsFile = args.length > 1 ? new FileInputStream(args[1]) : Main.class.getResourceAsStream("/entrypoints.csv");
+        InputStream lbFile = args.length > 2 ? new FileInputStream(args[1]) : Main.class.getResourceAsStream("/loadbalancers.txt");
         
         // Open the output file for the client
         writer = new BufferedMultiThreadedFileWriter("ClientLog_" + clientLocation + ".csv");
@@ -134,6 +136,28 @@ public class Main {
             throw new IllegalStateException(e);
         }
 
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(lbFile))) {
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if(!line.isEmpty()) {
+                	int count = 10;
+                	long sum = 0;
+                	for(int i = 0 ; i < count; i++) {
+                		Thread.sleep(1000);
+                		sum += performPing(line);
+                	}
+                	latencies.put(line, sum / (double)count);
+                    LOG.log(Level.WARNING,"Load Balancer Line: {0}", line);
+                    LOG.log(Level.WARNING,"Load Balancer Latency: {0}", latencies.get(line));
+                }
+            }
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Could not load load balancers!", e);
+            throw new IllegalStateException(e);
+        }
+        
+        clientStartTime = System.currentTimeMillis();
         int secsBetweenRuns = 5;
         long day = 24l * 60l * 60l;
         for (long sec = 0; sec <= day; sec += secsBetweenRuns){
@@ -180,15 +204,9 @@ public class Main {
         // current time after the response
         long clientEndTime = System.currentTimeMillis();        
         
-        Long latency = null;
+        Double latency = null;
         if (response.getRedirectAddress() != null) {
-            // Ping ...
-            long beforePing = System.currentTimeMillis();
-            WebTarget pingTarget = pingTarget(response.getRedirectAddress());
-            @SuppressWarnings("unused")
-            String pingResponse = pingTarget.request(MediaType.APPLICATION_JSON).get(String.class);
-            long afterPing = System.currentTimeMillis();
-            latency = (afterPing - beforePing) / 2;
+            latency = latencies.get(response.getRedirectAddress());
         }
         
         writer.writeCsv(LOG_LENS, clientStartTime - Main.clientStartTime,
@@ -197,7 +215,7 @@ public class Main {
                 entryPointCode,
                 response.getSelectedCloudSiteCode(),
                 clientEndTime - clientStartTime,
-                latency,
+                latency == null ? "null" : String.format("%.2f", latency),
                 userToken,
                 Arrays.toString(u.getCitizenships().toArray()),
                 Arrays.toString(u.getTags().toArray()),
@@ -208,6 +226,18 @@ public class Main {
         );
         //writer.flush();
     }
+
+	private static Long performPing(final String pingAddress) {
+		long latency;
+		// Ping ...
+		WebTarget pingTarget = pingTarget(pingAddress);
+		long beforePing = System.currentTimeMillis();
+		@SuppressWarnings("unused")
+		String pingResponse = pingTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+		long afterPing = System.currentTimeMillis();
+		latency = (afterPing - beforePing) / 2;
+		return latency;
+	}
 
 	private static WebTarget entryPointTarget(final String entryPointAddress, final String userToken) {
 		if(!entryPointTargets.containsKey(entryPointAddress)) {
