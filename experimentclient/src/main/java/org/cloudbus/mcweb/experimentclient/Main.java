@@ -92,7 +92,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         clientLocation = args.length > 0 ? args[0] : "Local";
         InputStream entryPointsFile = args.length > 1 ? new FileInputStream(args[1]) : Main.class.getResourceAsStream("/entrypoints.csv");
-        InputStream lbFile = args.length > 2 ? new FileInputStream(args[1]) : Main.class.getResourceAsStream("/loadbalancers.txt");
+        InputStream lbFile = args.length > 2 ? new FileInputStream(args[2]) : Main.class.getResourceAsStream("/loadbalancers.txt");
         
         // Open the output file for the client
         writer = new BufferedMultiThreadedFileWriter("ClientLog_" + clientLocation + ".csv");
