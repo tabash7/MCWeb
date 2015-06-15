@@ -60,12 +60,12 @@ public class BufferedMultiThreadedFileWriter implements AutoCloseable{
 		buffer.setLength(0); // Clear the buffer
 		for (int i = 0 ; i < values.length; i ++) {
 			String val = values[i] == null ? "null" : values[i].toString();
-			buffer.append(val);
 
 			// Pad it to right
 			for(int j = 0; j < colLengths[i] - val.length(); j++){
 				buffer.append(" ");
 			}
+			buffer.append(val);
 			
 			
 			if(i < values.length - 1) {
