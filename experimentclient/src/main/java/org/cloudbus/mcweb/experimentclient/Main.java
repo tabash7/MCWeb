@@ -28,6 +28,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.cloudbus.mcweb.EntryPointResponse;
 import org.cloudbus.mcweb.User;
 import org.cloudbus.mcweb.admissioncontroller.IUserResolver;
@@ -140,16 +141,16 @@ public class Main {
             String line = null;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
+                DescriptiveStatistics ds = new DescriptiveStatistics();
                 if(!line.isEmpty()) {
-                	int count = 10;
-                	long sum = 0;
-                	for(int i = 0 ; i < count; i++) {
-                		Thread.sleep(1000);
-                		sum += performPing(line);
-                	}
-                	latencies.put(line, sum / (double)count);
+                    int count = 50;
+                    for (int i = 0; i < count; i++) {
+                        sleep(0.3);
+                        ds.addValue(performPing(line));
+                    }
+                    latencies.put(line, ds.getPercentile(0.5));
                     LOG.log(Level.WARNING,"Load Balancer Line: {0}", line);
-                    LOG.log(Level.WARNING,"Load Balancer Latency: {0}", latencies.get(line));
+                    LOG.log(Level.WARNING,"Load Balancer Latency: {0}", ds.toString());
                 }
             }
         } catch (IOException e) {
