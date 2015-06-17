@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.cloudbus.cloudsim.ex.geolocation.IGeolocationService;
 import org.cloudbus.mcweb.UserRequest;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -148,6 +150,8 @@ public class EPUserRequest extends UserRequest {
         this.geoLocationService = geoLocationService;
     }
 
+    Set<String> loggedAddresses = new ConcurrentHashSet<String>();
+    
     /**
      * Returns the best cloud site, or null if the user should be refused
      * access.
@@ -172,13 +176,16 @@ public class EPUserRequest extends UserRequest {
                                        cloudSiteResponse.getCloudSite().getIPAddress(),
                                        latencySLA });
                 latency = latencySLA;
-            } /*else {
-            	LOG.log(Level.WARNING, 
+            } else {
+                if(loggedAddresses.contains(cloudSiteResponse.getCloudSite().getIPAddress())) {
+                    LOG.log(Level.WARNING, 
                         "-->> Latency between {0} and {1} is: {2}", 
                         new Object[] { getIpAddress(),
                                        cloudSiteResponse.getCloudSite().getIPAddress(),
                                        latency });
-            }*/
+                    loggedAddresses.add(cloudSiteResponse.getCloudSite().getIPAddress());
+                }
+            }
             
             if (latency < latencySLA) {
                 selectedCloud = cloudSiteResponse.getCloudSite();
@@ -189,9 +196,6 @@ public class EPUserRequest extends UserRequest {
                 selectedLatency = latency;
             }
         }
-
-        LOG.log(Level.WARNING, "User {0}, Selected cloud site {1}, Latency: {2} \n\n",
-                new Object[] {toString(), java.util.Objects.toString(selectedCloud).toString(), selectedLatency });
         
         return selectedCloud;
     }
