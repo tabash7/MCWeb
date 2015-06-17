@@ -9,9 +9,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,6 +55,8 @@ public class Main {
     }
 
     private static Logger LOG = Logger.getLogger(Main.class.getCanonicalName());
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:HH:mm:ss");
+
     
     private static Client client;
     private static List<String[]> entryPointAddresses;
@@ -67,6 +71,7 @@ public class Main {
     private static ConcurrentHashMap<String, WebTarget> pingTargets = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<String, Double> latencies = new ConcurrentHashMap<>();
     private static final int[] LOG_LENS = new int[] {
+            21,
             8,
             6,
             11,
@@ -98,6 +103,7 @@ public class Main {
         // Open the output file for the client
         writer = new BufferedMultiThreadedFileWriter("ClientLog_" + clientLocation + ".csv");
         writer.writeCsv(LOG_LENS,
+                "Clock",
                 "Time",
                 "UNum",
                 "Client",
@@ -210,7 +216,9 @@ public class Main {
             latency = latencies.get(response.getRedirectAddress());
         }
         
-        writer.writeCsv(LOG_LENS, clientStartTime - Main.clientStartTime,
+        writer.writeCsv(LOG_LENS, 
+                sdf.format(new Date()),
+                clientStartTime - Main.clientStartTime,
                 userCount,
                 Main.clientLocation,
                 entryPointCode,
