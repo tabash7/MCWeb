@@ -4,13 +4,18 @@ import static org.cloudbus.mcweb.util.Configs.EP_PATH;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import org.cloudbus.cloudsim.ex.geolocation.IGeolocationService;
 import org.cloudbus.cloudsim.ex.geolocation.geoip2.GeoIP2PingERService;
+import org.cloudbus.cloudsim.ex.geolocation.geoip2.GeolocationServiceWithOverrides;
+import org.cloudbus.cloudsim.ex.geolocation.geoip2.OverrideRule;
 import org.cloudbus.mcweb.util.Configs;
+import org.cloudbus.mcweb.util.Jsons;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -57,7 +62,11 @@ public class Main {
         try (AutoCloseable serverClosable = jettyServer::destroy;
                 EntryPoint ep = EntryPoint.getInstance()) {
             // Configure the entry point
-            EntryPoint.getInstance().configure(cloudSiteStream, configStream, RESTCloudSite.FACTORY, new GeoIP2PingERService());
+            IGeolocationService service = new GeolocationServiceWithOverrides(new GeoIP2PingERService(), 
+                    Arrays.asList(Jsons.fromJson(
+                            Main.class.getResourceAsStream("/ip-override-rules.json"), 
+                            OverrideRule[].class)));
+            EntryPoint.getInstance().configure(cloudSiteStream, configStream, RESTCloudSite.FACTORY, service);
 
             // Configure the servelet context
             ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
