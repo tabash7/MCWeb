@@ -150,7 +150,7 @@ public class EPUserRequest extends UserRequest {
         this.geoLocationService = geoLocationService;
     }
 
-    Set<String> loggedAddresses = new ConcurrentHashSet<String>();
+    static Set<String> loggedAddresses = new ConcurrentHashSet<String>();
     
     /**
      * Returns the best cloud site, or null if the user should be refused
@@ -177,13 +177,13 @@ public class EPUserRequest extends UserRequest {
                                        latencySLA });
                 latency = latencySLA;
             } else {
-                if(!loggedAddresses.contains(cloudSiteResponse.getCloudSite().getIPAddress())) {
+                if(!loggedAddresses.contains(getIpAddress())) {
                     LOG.log(Level.WARNING, 
                         "-->> Latency between {0} and {1} is: {2}", 
                         new Object[] { getIpAddress(),
                                        cloudSiteResponse.getCloudSite().getIPAddress(),
                                        latency });
-                    loggedAddresses.add(cloudSiteResponse.getCloudSite().getIPAddress());
+                    loggedAddresses.add(getIpAddress());
                 }
             }
             
