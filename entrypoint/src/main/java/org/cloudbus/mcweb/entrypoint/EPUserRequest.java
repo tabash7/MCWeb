@@ -177,7 +177,7 @@ public class EPUserRequest extends UserRequest {
                                        latencySLA });
                 latency = latencySLA;
             } else {
-                if(loggedAddresses.contains(cloudSiteResponse.getCloudSite().getIPAddress())) {
+                if(!loggedAddresses.contains(cloudSiteResponse.getCloudSite().getIPAddress())) {
                     LOG.log(Level.WARNING, 
                         "-->> Latency between {0} and {1} is: {2}", 
                         new Object[] { getIpAddress(),
