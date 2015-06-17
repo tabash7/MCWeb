@@ -172,13 +172,13 @@ public class EPUserRequest extends UserRequest {
                                        cloudSiteResponse.getCloudSite().getIPAddress(),
                                        latencySLA });
                 latency = latencySLA;
-            } else {
+            } /*else {
             	LOG.log(Level.WARNING, 
                         "-->> Latency between {0} and {1} is: {2}", 
                         new Object[] { getIpAddress(),
                                        cloudSiteResponse.getCloudSite().getIPAddress(),
                                        latency });
-            }
+            }*/
             
             if (latency < latencySLA) {
                 selectedCloud = cloudSiteResponse.getCloudSite();
