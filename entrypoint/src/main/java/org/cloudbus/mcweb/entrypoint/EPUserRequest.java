@@ -172,10 +172,17 @@ public class EPUserRequest extends UserRequest {
                                        cloudSiteResponse.getCloudSite().getIPAddress(),
                                        latencySLA });
                 latency = latencySLA;
+            } else {
+            	LOG.log(Level.WARNING, 
+                        "-->> Latency between {0} and {1} is: {2}", 
+                        new Object[] { getIpAddress(),
+                                       cloudSiteResponse.getCloudSite().getIPAddress(),
+                                       latency });
             }
             
             if (latency < latencySLA) {
                 selectedCloud = cloudSiteResponse.getCloudSite();
+                selectedLatency = latency;
                 break;
             } else if (selectedLatency > latency) {
                 selectedCloud = cloudSiteResponse.getCloudSite();
@@ -183,8 +190,8 @@ public class EPUserRequest extends UserRequest {
             }
         }
 
-        LOG.log(Level.INFO, "User {0}, Selected cloud site {1} ",
-                new Object[] {toString(), java.util.Objects.toString(selectedCloud).toString() });
+        LOG.log(Level.WARNING, "User {0}, Selected cloud site {1}, Latency: {2} \n\n",
+                new Object[] {toString(), java.util.Objects.toString(selectedCloud).toString(), selectedLatency });
         
         return selectedCloud;
     }
