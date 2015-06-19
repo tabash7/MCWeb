@@ -3,6 +3,8 @@ package org.cloudbus.mcweb.util;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
@@ -15,6 +17,8 @@ import com.google.gson.GsonBuilder;
  */
 public class Jsons {
 
+    private static final Logger LOG = Logger.getLogger(Jsons.class.getCanonicalName());
+    
     /** Suppress construction. */
     private Jsons() {
     }
@@ -34,7 +38,12 @@ public class Jsons {
      */
     public static String toJson(final Object src) {
         Preconditions.checkNotNull(src);
-        return GSON.toJson(src);
+        try{
+            return GSON.toJson(src);
+        }catch (RuntimeException re) {
+            LOG.log(Level.SEVERE, String.format("Can not convert to json:\"%s\"", src), re);
+            throw new RuntimeException(re);
+        }
     }
 
     /**
@@ -49,7 +58,12 @@ public class Jsons {
     public static void toJson(final Object src, final Appendable appendable) {
         Preconditions.checkNotNull(src);
         Preconditions.checkNotNull(appendable);
-        GSON.toJson(src, appendable);
+        try{
+            GSON.toJson(src, appendable);
+        }catch (RuntimeException re) {
+            LOG.log(Level.SEVERE, String.format("Can not convert to json:\"%s\"", src), re);
+            throw new RuntimeException(re);
+        }
     }
     
     /**
@@ -64,7 +78,12 @@ public class Jsons {
     public static <T> String toJson(final T src, final Class<T> clazz) {
         Preconditions.checkNotNull(src);
         Preconditions.checkNotNull(clazz);
-        return GSON.toJson(src, clazz);
+        try{
+            return GSON.toJson(src, clazz);
+        }catch (RuntimeException re) {
+            LOG.log(Level.SEVERE, String.format("Can not convert to json:\"%s\"", src), re);
+            throw new RuntimeException(re);
+        }
     } 
     
     /**
@@ -82,7 +101,12 @@ public class Jsons {
         Preconditions.checkNotNull(src);
         Preconditions.checkNotNull(clazz);
         Preconditions.checkNotNull(appendable);
-        GSON.toJson(src, clazz, appendable);
+        try{
+            GSON.toJson(src, clazz, appendable);
+        }catch (RuntimeException re) {
+            LOG.log(Level.SEVERE, String.format("Can not convert json:\"%s\"", src), re);
+            throw new RuntimeException(re);
+        }
     } 
     
     /**
@@ -97,7 +121,12 @@ public class Jsons {
     public static <T> T fromJson(final String json, final Class<T> clazz) {
         Preconditions.checkNotNull(json);
         Preconditions.checkNotNull(clazz);
-        return GSON.fromJson(json, clazz);
+        try{
+            return GSON.fromJson(json, clazz);
+        }catch (RuntimeException re) {
+            LOG.log(Level.SEVERE, String.format("Can not parse json:\"%s\"", json), re);
+            throw new RuntimeException(re);
+        }
     }
     
     /**
