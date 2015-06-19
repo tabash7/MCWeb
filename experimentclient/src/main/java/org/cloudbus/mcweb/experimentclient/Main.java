@@ -168,7 +168,7 @@ public class Main {
         int secsBetweenRuns = 5;
         long day = 24l * 60l * 60l;
         for (long sec = 0; sec <= day; sec += secsBetweenRuns){
-            startRuns(50, secsBetweenRuns);
+            startRuns(secsBetweenRuns * 5, secsBetweenRuns);
             sleep(secsBetweenRuns);
         }
     }
